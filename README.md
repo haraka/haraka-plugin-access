@@ -208,8 +208,8 @@ OD is *bbc.co.uk*.
 <!-- leave these buried at the bottom of the document -->
 [ci-img]: https://travis-ci.org/haraka/haraka-plugin-access.svg
 [ci-url]: https://travis-ci.org/haraka/haraka-plugin-access
-[ci-win-img]: https://ci.appveyor.com/api/projects/status/CHANGETHIS?svg=true
-[ci-win-url]: https://ci.appveyor.com/project/haraka/haraka-CHANGETHIS
+[ci-win-img]: https://ci.appveyor.com/api/projects/status/r7oitgpijroaia4n?svg=true
+[ci-win-url]: https://ci.appveyor.com/project/msimerson/haraka-plugin-access
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
 [gk-img]: https://badges.greenkeeper.io/haraka/haraka-plugin-access.svg
