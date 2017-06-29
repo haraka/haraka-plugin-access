@@ -251,7 +251,7 @@ exports.rdns_access = function (next, connection) {
     }
 
     // blacklist checks
-    for (i=0; i < addrs.length; i++) {
+    for (let i=0; i < addrs.length; i++) {
         addr = addrs[i];
         if (!addr) { continue; }  // empty rDNS host
         if (/[\w]/.test(addr)) { addr = addr.toLowerCase(); }
