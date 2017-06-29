@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint *.js test/**/*.js",
     "lintfix": "./node_modules/.bin/eslint --fix *.js test/**/*.js",
-    "test": "./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/nodeunit"
   },
   "repository": {
     "type": "git",
@@ -24,9 +24,16 @@
   },
   "homepage": "https://github.com/haraka/haraka-plugin-access#readme",
   "devDependencies": {
-    "eslint": ">=3",
+    "eslint": ">=4",
     "eslint-plugin-haraka": "*",
     "haraka-test-fixtures": "*",
-    "mocha": "*"
+    "mocha": "*",
+    "nodeunit": "*"
+  },
+  "dependencies": {
+    "address-rfc2822": "*",
+    "haraka-net-utils": "*",
+    "haraka-tld": "*",
+    "haraka-utils": "*"
   }
 }
