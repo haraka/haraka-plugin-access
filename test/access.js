@@ -1,11 +1,11 @@
 'use strict';
 
-var path         = require('path');
+const path         = require('path');
 
-var Address      = require('address-rfc2821').Address;
-var fixtures     = require('haraka-test-fixtures');
+const Address      = require('address-rfc2821').Address;
+const fixtures     = require('haraka-test-fixtures');
 
-var _set_up = function (done) {
+const _set_up = function (done) {
 
     this.plugin = new fixtures.plugin('access');
     this.plugin.config.module_config(path.resolve(__dirname, 'config'));
@@ -23,7 +23,7 @@ var _set_up = function (done) {
 exports.in_list = {
     setUp : _set_up,
     'white, mail': function (test) {
-        var list = {'matt@exam.ple':true,'matt@example.com':true};
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg  = { white: { mail: 'test no file' }};
         this.plugin.list = { white: { mail: list }};
         test.expect(3);
@@ -33,7 +33,7 @@ exports.in_list = {
         test.done();
     },
     'white, rcpt': function (test) {
-        var list = {'matt@exam.ple':true,'matt@example.com':true};
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { white: { rcpt: 'test file name' }}};
         this.plugin.list = { white: { rcpt: list }};
         test.expect(3);
@@ -43,7 +43,7 @@ exports.in_list = {
         test.done();
     },
     'white, helo': function (test) {
-        var list = {'matt@exam.ple':true,'matt@example.com':true};
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { white: { helo: 'test file name' }}};
         this.plugin.list = { white: { helo: list }};
         test.expect(3);
@@ -53,7 +53,7 @@ exports.in_list = {
         test.done();
     },
     'black, mail': function (test) {
-        var list = {'matt@exam.ple':true,'matt@example.com':true};
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { black: { mail: 'test file name' }}};
         this.plugin.list = { black: { mail: list }};
         test.expect(3);
@@ -63,7 +63,7 @@ exports.in_list = {
         test.done();
     },
     'black, rcpt': function (test) {
-        var list = {'matt@exam.ple':true,'matt@example.com':true};
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { black: { rcpt: 'test file name' }}};
         this.plugin.list = { black: { rcpt: list }};
         test.expect(3);
@@ -73,7 +73,7 @@ exports.in_list = {
         test.done();
     },
     'black, helo': function (test) {
-        var list = {'matt@exam.ple':true,'matt@example.com':true};
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { black: { helo: 'test file name' }}};
         this.plugin.list = { black: { helo: list }};
         test.expect(3);
@@ -87,7 +87,7 @@ exports.in_list = {
 exports.in_re_list = {
     setUp : _set_up,
     'white, mail': function (test) {
-        var list = ['.*exam.ple','.*example.com'];
+        const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { mail: 'test file name' }}};
         this.plugin.list_re = { white: { mail: new RegExp('^(' + list.join('|') + ')$', 'i') }};
         test.expect(3);
@@ -97,7 +97,7 @@ exports.in_re_list = {
         test.done();
     },
     'white, rcpt': function (test) {
-        var list = ['.*exam.ple','.*example.com'];
+        const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { rcpt: 'test file name' }}};
         this.plugin.list_re = { white: { rcpt: new RegExp('^(' + list.join('|') + ')$', 'i') }};
         test.expect(3);
@@ -107,7 +107,7 @@ exports.in_re_list = {
         test.done();
     },
     'white, helo': function (test) {
-        var list = ['.*exam.ple','.*example.com'];
+        const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { helo: 'test file name' }}};
         this.plugin.list_re = { white: { helo: new RegExp('^(' + list.join('|') + ')$', 'i') }};
         test.expect(3);
@@ -117,7 +117,7 @@ exports.in_re_list = {
         test.done();
     },
     'black, mail': function (test) {
-        var list = ['.*exam.ple','.*example.com'];
+        const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { mail: 'test file name' }}};
         this.plugin.list_re = { black: { mail: new RegExp('^(' + list.join('|') + ')$', 'i') }};
         test.expect(3);
@@ -127,7 +127,7 @@ exports.in_re_list = {
         test.done();
     },
     'black, rcpt': function (test) {
-        var list = ['.*exam.ple','.*example.com'];
+        const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { rcpt: 'test file name' }}};
         this.plugin.list_re = { black: { rcpt: new RegExp('^(' + list.join('|') + ')$', 'i') }};
         test.expect(3);
@@ -137,7 +137,7 @@ exports.in_re_list = {
         test.done();
     },
     'black, helo': function (test) {
-        var list = ['.*exam.ple','.*example.com'];
+        const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { helo: 'test file name' }}};
         this.plugin.list_re = { black: { helo: new RegExp('^(' + list.join('|') + ')$', 'i') }};
         test.expect(3);
@@ -165,7 +165,7 @@ exports.in_file = {
     setUp : _set_up,
     'in_file': function (test) {
         test.expect(2);
-        var file = 'mail_from.access.whitelist';
+        const file = 'mail_from.access.whitelist';
         test.equal(true,  this.plugin.in_file(file, 'haraka@harakamail.com', this.connection));
         test.equal(false, this.plugin.in_file(file, 'matt@harakamail.com', this.connection));
         test.done();
@@ -176,7 +176,7 @@ exports.in_re_file = {
     setUp : _set_up,
     'in_re_file': function (test) {
         test.expect(2);
-        var file = 'mail_from.access.whitelist_regex';
+        const file = 'mail_from.access.whitelist_regex';
         // console.log(this.plugin.cfg);
         test.equal(true,  this.plugin.in_re_file(file, 'list@harakamail.com'));
         test.equal(false, this.plugin.in_re_file(file, 'matt@harkatamale.com'));
@@ -188,7 +188,7 @@ exports.rdns_access = {
     setUp : _set_up,
     'no list': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             // console.log(this.connection.results.get('access'));
             test.equal(undefined, rc);
             test.ok(this.connection.results.get('access').msg.length);
@@ -200,7 +200,7 @@ exports.rdns_access = {
     },
     'whitelist': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             // console.log(this.connection.results.get('access'));
             test.equal(undefined, rc);
             test.ok(this.connection.results.get('access').pass.length);
@@ -214,7 +214,7 @@ exports.rdns_access = {
     },
     'blacklist': function (test) {
         test.expect(3);
-        var cb = function (rc, msg) {
+        const cb = function (rc, msg) {
             // console.log(this.connection.results.get('access'));
             test.equal(DENYDISCONNECT, rc);
             test.equal("host.example.com [1.1.1.1] You are not allowed to connect", msg);
@@ -228,7 +228,7 @@ exports.rdns_access = {
     },
     'blacklist regex': function (test) {
         test.expect(3);
-        var cb = function (rc, msg) {
+        const cb = function (rc, msg) {
             // console.log(this.connection.results.get('access'));
             test.equal(DENYDISCONNECT, rc);
             test.equal("host.antispam.com [1.1.1.1] You are not allowed to connect", msg);
@@ -237,7 +237,7 @@ exports.rdns_access = {
         }.bind(this);
         this.connection.remote.ip='1.1.1.1';
         this.connection.remote.host='host.antispam.com';
-        var black = [ '.*spam.com' ];
+        const black = [ '.*spam.com' ];
         this.plugin.list_re.black.conn = new RegExp('^(' + black.join('|') + ')$', 'i');
         this.plugin.rdns_access(cb, this.connection);
     },
@@ -247,8 +247,8 @@ exports.helo_access = {
     setUp : _set_up,
     'no list': function (test) {
         test.expect(2);
-        var cb = function (rc) {
-            var r = this.connection.results.get('access');
+        const cb = function (rc) {
+            const r = this.connection.results.get('access');
             test.equal(undefined, rc);
             test.ok(r && r.msg && r.msg.length);
             test.done();
@@ -258,13 +258,13 @@ exports.helo_access = {
     },
     'blacklisted regex': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(DENY, rc);
-            var r = this.connection.results.get('access');
+            const r = this.connection.results.get('access');
             test.ok(r && r.fail && r.fail.length);
             test.done();
         }.bind(this);
-        var black = [ '.*spam.com' ];
+        const black = [ '.*spam.com' ];
         this.plugin.list_re.black.helo =
             new RegExp('^(' + black.join('|') + ')$', 'i');
         this.plugin.cfg.check.helo=true;
@@ -276,7 +276,7 @@ exports.mail_from_access = {
     setUp : _set_up,
     'no lists populated': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').msg.length);
             test.done();
@@ -285,7 +285,7 @@ exports.mail_from_access = {
     },
     'whitelisted addr': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').pass.length);
             test.done();
@@ -295,7 +295,7 @@ exports.mail_from_access = {
     },
     'blacklisted addr': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(DENY, rc);
             test.ok(this.connection.transaction.results.get('access').fail.length);
             test.done();
@@ -305,24 +305,24 @@ exports.mail_from_access = {
     },
     'blacklisted domain': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(DENY, rc);
             test.ok(this.connection.transaction.results.get('access').fail.length);
             test.done();
         }.bind(this);
-        var black = [ '.*@spam.com' ];
+        const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.mail = new RegExp('^(' + black.join('|') + ')$', 'i');
         this.plugin.mail_from_access(cb, this.connection, [new Address('<bad@spam.com>')]);
     },
     'blacklisted domain, white addr': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').pass.length);
             test.done();
         }.bind(this);
         this.plugin.list.white.mail['special@spam.com']=true;
-        var black = [ '.*@spam.com' ];
+        const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.mail = new RegExp('^(' + black.join('|') + ')$', 'i');
         this.plugin.mail_from_access(cb, this.connection, [new Address('<special@spam.com>')]);
     },
@@ -332,7 +332,7 @@ exports.rcpt_to_access = {
     setUp : _set_up,
     'no lists populated': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').msg.length);
             test.done();
@@ -341,7 +341,7 @@ exports.rcpt_to_access = {
     },
     'whitelisted addr': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').pass.length);
             test.done();
@@ -351,7 +351,7 @@ exports.rcpt_to_access = {
     },
     'blacklisted addr': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(DENY, rc);
             test.ok(this.connection.transaction.results.get('access').fail.length);
             test.done();
@@ -361,24 +361,24 @@ exports.rcpt_to_access = {
     },
     'blacklisted domain': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(DENY, rc);
             test.ok(this.connection.transaction.results.get('access').fail.length);
             test.done();
         }.bind(this);
-        var black = [ '.*@spam.com' ];
+        const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.rcpt = new RegExp('^(' + black.join('|') + ')$', 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<bad@spam.com>')]);
     },
     'blacklisted domain, white addr': function (test) {
         test.expect(2);
-        var cb = function (rc) {
+        const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').pass.length);
             test.done();
         }.bind(this);
         this.plugin.list.white.rcpt['special@spam.com'] = true;
-        var black = [ '.*@spam.com' ];
+        const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.rcpt = new RegExp('^(' + black.join('|') + ')$', 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<special@spam.com>')]);
     },
