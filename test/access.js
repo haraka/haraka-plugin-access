@@ -89,7 +89,7 @@ exports.in_re_list = {
     'white, mail': function (test) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { mail: 'test file name' }}};
-        this.plugin.list_re = { white: { mail: new RegExp('^(' + list.join('|') + ')$', 'i') }};
+        this.plugin.list_re = { white: { mail: new RegExp(`^(${list.join('|')})$`, 'i') }};
         test.expect(3);
         test.equal(true,  this.plugin.in_re_list('white', 'mail', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_re_list('white', 'mail', 'matt@example.com'));
@@ -99,7 +99,7 @@ exports.in_re_list = {
     'white, rcpt': function (test) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { rcpt: 'test file name' }}};
-        this.plugin.list_re = { white: { rcpt: new RegExp('^(' + list.join('|') + ')$', 'i') }};
+        this.plugin.list_re = { white: { rcpt: new RegExp(`^(${list.join('|')})$`, 'i') }};
         test.expect(3);
         test.equal(true,  this.plugin.in_re_list('white', 'rcpt', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_re_list('white', 'rcpt', 'matt@example.com'));
@@ -109,7 +109,7 @@ exports.in_re_list = {
     'white, helo': function (test) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { helo: 'test file name' }}};
-        this.plugin.list_re = { white: { helo: new RegExp('^(' + list.join('|') + ')$', 'i') }};
+        this.plugin.list_re = { white: { helo: new RegExp(`^(${list.join('|')})$`, 'i') }};
         test.expect(3);
         test.equal(true,  this.plugin.in_re_list('white', 'helo', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_re_list('white', 'helo', 'matt@example.com'));
@@ -119,7 +119,7 @@ exports.in_re_list = {
     'black, mail': function (test) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { mail: 'test file name' }}};
-        this.plugin.list_re = { black: { mail: new RegExp('^(' + list.join('|') + ')$', 'i') }};
+        this.plugin.list_re = { black: { mail: new RegExp(`^(${list.join('|')})$`, 'i') }};
         test.expect(3);
         test.equal(true,  this.plugin.in_re_list('black', 'mail', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_re_list('black', 'mail', 'matt@example.com'));
@@ -129,7 +129,7 @@ exports.in_re_list = {
     'black, rcpt': function (test) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { rcpt: 'test file name' }}};
-        this.plugin.list_re = { black: { rcpt: new RegExp('^(' + list.join('|') + ')$', 'i') }};
+        this.plugin.list_re = { black: { rcpt: new RegExp(`^(${list.join('|')})$`, 'i') }};
         test.expect(3);
         test.equal(true,  this.plugin.in_re_list('black', 'rcpt', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_re_list('black', 'rcpt', 'matt@example.com'));
@@ -139,7 +139,7 @@ exports.in_re_list = {
     'black, helo': function (test) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { helo: 'test file name' }}};
-        this.plugin.list_re = { black: { helo: new RegExp('^(' + list.join('|') + ')$', 'i') }};
+        this.plugin.list_re = { black: { helo: new RegExp(`^(${list.join('|')})$`, 'i') }};
         test.expect(3);
         test.equal(true,  this.plugin.in_re_list('black', 'helo', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_re_list('black', 'helo', 'matt@example.com'));
@@ -238,7 +238,7 @@ exports.rdns_access = {
         this.connection.remote.ip='1.1.1.1';
         this.connection.remote.host='host.antispam.com';
         const black = [ '.*spam.com' ];
-        this.plugin.list_re.black.conn = new RegExp('^(' + black.join('|') + ')$', 'i');
+        this.plugin.list_re.black.conn = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rdns_access(cb, this.connection);
     },
 };
@@ -266,7 +266,7 @@ exports.helo_access = {
         }.bind(this);
         const black = [ '.*spam.com' ];
         this.plugin.list_re.black.helo =
-            new RegExp('^(' + black.join('|') + ')$', 'i');
+            new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.cfg.check.helo=true;
         this.plugin.helo_access(cb, this.connection, 'bad.spam.com');
     },
@@ -311,7 +311,7 @@ exports.mail_from_access = {
             test.done();
         }.bind(this);
         const black = [ '.*@spam.com' ];
-        this.plugin.list_re.black.mail = new RegExp('^(' + black.join('|') + ')$', 'i');
+        this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.mail_from_access(cb, this.connection, [new Address('<bad@spam.com>')]);
     },
     'blacklisted domain, white addr': function (test) {
@@ -323,7 +323,7 @@ exports.mail_from_access = {
         }.bind(this);
         this.plugin.list.white.mail['special@spam.com']=true;
         const black = [ '.*@spam.com' ];
-        this.plugin.list_re.black.mail = new RegExp('^(' + black.join('|') + ')$', 'i');
+        this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.mail_from_access(cb, this.connection, [new Address('<special@spam.com>')]);
     },
 };
@@ -367,7 +367,7 @@ exports.rcpt_to_access = {
             test.done();
         }.bind(this);
         const black = [ '.*@spam.com' ];
-        this.plugin.list_re.black.rcpt = new RegExp('^(' + black.join('|') + ')$', 'i');
+        this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<bad@spam.com>')]);
     },
     'blacklisted domain, white addr': function (test) {
@@ -379,7 +379,7 @@ exports.rcpt_to_access = {
         }.bind(this);
         this.plugin.list.white.rcpt['special@spam.com'] = true;
         const black = [ '.*@spam.com' ];
-        this.plugin.list_re.black.rcpt = new RegExp('^(' + black.join('|') + ')$', 'i');
+        this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<special@spam.com>')]);
     },
 };
