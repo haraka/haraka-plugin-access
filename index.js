@@ -176,7 +176,7 @@ exports.any = function (next, connection, params) {
 
     const org_domain = tlds.get_organizational_domain(domain);
     if (!org_domain) {
-        connection.logerror(plugin, `no org domain from ${domain}`);
+        connection.loginfo(plugin, `no org domain from ${domain}`);
         return next();
     }
 
