@@ -123,6 +123,9 @@ Each check can be enabled or disabled in the [check] section of access.ini:
     mail=false
     rcpt=false
 
+    [rcpt]
+    accept=false  (see below)
+
 A custom deny message can be configured for each SMTP phase:
 
     [deny_msg]
@@ -172,6 +175,13 @@ matches are 3x times as slow. When the matches are moved to the end of the
 Based on this observation, reducing the domain name and doing an indexOf
 search of an (even much longer) blacklist is *much* faster than adding lists
 of .\*domain.com entries to the \*\_regex files.
+
+### rcpt accept mode
+
+By default this plugin only rejects recipients on the blacklists, and ignores
+those on the whitelists. Setting `rcpt.accept=true` enables recipient validation
+for users in whitelists, actually accepting mails instead of only blocking
+unwanted recipients.
 
 ### Organizational Domain
 
