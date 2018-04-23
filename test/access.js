@@ -349,6 +349,28 @@ exports.rcpt_to_access = {
         this.plugin.list.white.rcpt['user@example.com']=true;
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
     },
+    'whitelisted addr, accept enabled': function (test) {
+        test.expect(2);
+        const cb = function (rc) {
+            test.equal(OK, rc);
+            test.ok(this.connection.transaction.results.get('access').pass.length);
+            test.done();
+        }.bind(this);
+        this.plugin.cfg.rcpt.accept=true;
+        this.plugin.list.white.rcpt['user@example.com']=true;
+        this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
+    },
+    'regex whitelisted addr, accept enabled': function (test) {
+        test.expect(2);
+        const cb = function (rc) {
+            test.equal(OK, rc);
+            test.ok(this.connection.transaction.results.get('access').pass.length);
+            test.done();
+        }.bind(this);
+        this.plugin.cfg.rcpt.accept=true;
+        this.plugin.list_re.white.rcpt = new RegExp(`^user@example.com$`, 'i');
+        this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
+    },
     'blacklisted addr': function (test) {
         test.expect(2);
         const cb = function (rc) {

@@ -88,6 +88,7 @@ exports.load_access_ini = function () {
             '-check.helo',
             '+check.mail',
             '+check.rcpt',
+            '-rcpt.accept',
         ],
     }, function () {
         plugin.load_access_ini();
@@ -102,6 +103,8 @@ exports.load_access_ini = function () {
             }
         }
     }
+
+    plugin.cfg.rcpt = cfg.rcpt;
 
     // backwards compatibility
     const mf_cfg = plugin.config.get('mail_from.access.ini');
@@ -338,6 +341,11 @@ exports.rcpt_to_access = function (next, connection, params) {
     const plugin = this;
     if (!plugin.cfg.check.rcpt) { return next(); }
 
+    let pass_status = undefined;
+    if (plugin.cfg.rcpt.accept) {
+        pass_status = OK;
+    }
+
     const rcpt_to = params[0].address();
 
     // address whitelist checks
@@ -350,13 +358,13 @@ exports.rcpt_to_access = function (next, connection, params) {
     let file = plugin.cfg.white.rcpt;
     if (plugin.in_list('white', 'rcpt', rcpt_to)) {
         connection.transaction.results.add(plugin, {pass: file, emit: true});
-        return next();
+        return next(pass_status);
     }
 
     file = plugin.cfg.re.white.rcpt;
     if (plugin.in_re_list('white', 'rcpt', rcpt_to)) {
         connection.transaction.results.add(plugin, {pass: file, emit: true});
-        return next();
+        return next(pass_status);
     }
 
     // address blacklist checks
