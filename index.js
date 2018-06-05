@@ -38,7 +38,7 @@ exports.register = function () {
         });
         plugin.register_hook('data_post', 'data_any');
     }
-};
+}
 
 exports.init_config = function () {
     const plugin = this;
@@ -77,7 +77,7 @@ exports.init_config = function () {
             },
         },
     };
-};
+}
 
 exports.load_access_ini = function () {
     const plugin = this;
@@ -119,7 +119,7 @@ exports.load_access_ini = function () {
     if (rdns_cfg && rdns_cfg.general && rdns_cfg.general.deny_msg) {
         plugin.cfg.deny_msg.conn = rdns_cfg.general.deny_msg;
     }
-};
+}
 
 exports.init_lists = function () {
     const plugin = this;
@@ -132,7 +132,7 @@ exports.init_lists = function () {
         black: {},
         white: {},
     };
-};
+}
 
 exports.get_domain = function (hook, connection, params) {
 
@@ -153,7 +153,7 @@ exports.get_domain = function (hook, connection, params) {
             }
     }
     return;
-};
+}
 
 exports.any = function (next, connection, params) {
     const plugin = this;
@@ -214,7 +214,7 @@ exports.any = function (next, connection, params) {
     const pass_msg = hook ? `${hook}:any` : 'any';
     cr.add(plugin, {msg: `unlisted(${pass_msg})` });
     return next();
-};
+}
 
 exports.rdns_access = function (next, connection) {
     const plugin = this;
@@ -277,7 +277,7 @@ exports.rdns_access = function (next, connection) {
 
     connection.results.add(plugin, {msg: 'unlisted(conn)' });
     return next();
-};
+}
 
 exports.helo_access = function (next, connection, helo) {
     const plugin = this;
@@ -291,7 +291,7 @@ exports.helo_access = function (next, connection, helo) {
 
     connection.results.add(plugin, {msg: 'unlisted(helo)' });
     return next();
-};
+}
 
 exports.mail_from_access = function (next, connection, params) {
     const plugin = this;
@@ -335,7 +335,7 @@ exports.mail_from_access = function (next, connection, params) {
 
     connection.transaction.results.add(plugin, {msg: 'unlisted(mail)' });
     return next();
-};
+}
 
 exports.rcpt_to_access = function (next, connection, params) {
     const plugin = this;
@@ -382,7 +382,7 @@ exports.rcpt_to_access = function (next, connection, params) {
 
     connection.transaction.results.add(plugin, {msg: 'unlisted(rcpt)' });
     return next();
-};
+}
 
 exports.data_any = function (next, connection) {
     const plugin = this;
@@ -422,7 +422,7 @@ exports.data_any = function (next, connection) {
 
     connection.results.add(plugin, {msg: 'unlisted(any)' });
     return next();
-};
+}
 
 exports.in_list = function (type, phase, address) {
     const plugin = this;
@@ -432,7 +432,7 @@ exports.in_list = function (type, phase, address) {
     }
     if (plugin.list[type][phase][address.toLowerCase()]) { return true; }
     return false;
-};
+}
 
 exports.in_re_list = function (type, phase, address) {
     const plugin = this;
@@ -445,7 +445,7 @@ exports.in_re_list = function (type, phase, address) {
             `${plugin.cfg.re[type][phase].source}`);
     }
     return plugin.list_re[type][phase].test(address);
-};
+}
 
 exports.in_file = function (file_name, address, connection) {
     const plugin = this;
@@ -454,7 +454,7 @@ exports.in_file = function (file_name, address, connection) {
     connection.logdebug(plugin, `checking ${address} against ${file_name}`);
     return (plugin.config.get(file_name, 'list')
         .indexOf(address) === -1) ? false : true;
-};
+}
 
 exports.in_re_file = function (file_name, address) {
     // Since the helo.checks plugin uses this method, I tested to see how
@@ -467,7 +467,7 @@ exports.in_re_file = function (file_name, address) {
         if (new RegExp('^' + re_list[i] + '$', 'i').test(address)) return true;
     }
     return false;
-};
+}
 
 exports.load_file = function (type, phase) {
     const plugin = this;
@@ -494,7 +494,7 @@ exports.load_file = function (type, phase) {
         listAsHash[list[i].toLowerCase()] = true;
     }
     plugin.list[type][phase] = listAsHash;
-};
+}
 
 exports.load_re_file = function (type, phase) {
     const plugin = this;
@@ -519,7 +519,7 @@ exports.load_re_file = function (type, phase) {
     // compile the regexes at the designated location
     plugin.list_re[type][phase] =
         new RegExp(`^(${regex_list.join('|')})$`, 'i');
-};
+}
 
 exports.load_domain_file = function (type, phase) {
     const plugin = this;
@@ -553,4 +553,4 @@ exports.load_domain_file = function (type, phase) {
         if (!d) { continue; }
         plugin.list[type][phase][d.toLowerCase()] = true;
     }
-};
+}
