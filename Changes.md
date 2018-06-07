@@ -2,6 +2,6 @@
 
 - #6: add rcpt.accept setting to enable recipient validation for users in whitelists (like an rcpt_to.* plugin)
 
-# 1.0.0 - 201_-__-__
+# 1.0.0 - 2017-06-29
 
 - initial release
