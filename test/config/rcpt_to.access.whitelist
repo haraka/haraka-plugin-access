@@ -1,0 +1,10 @@
+# For more information: 'haraka -h access'
+#
+# addresses are matched exactly as written on each line.
+
+# normal
+admin1@example.com
+# capslock
+ADMIN2@EXAMPLE.com
+# mixed
+admin3@EXAMPLE.com

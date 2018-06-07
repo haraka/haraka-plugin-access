@@ -8,7 +8,7 @@ const fixtures     = require('haraka-test-fixtures');
 const _set_up = function (done) {
 
     this.plugin = new fixtures.plugin('access');
-    this.plugin.config.module_config(path.resolve(__dirname, 'config'));
+    this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
 
     this.plugin.register();
 
