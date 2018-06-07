@@ -32,6 +32,14 @@ exports.in_list = {
         test.equal(false, this.plugin.in_list('white', 'mail', 'matt@non-exist'));
         test.done();
     },
+    'white, mail, case': function (test) {
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
+        this.plugin.cfg  = { white: { mail: 'test no file' }};
+        this.plugin.list = { white: { mail: list }};
+        test.expect(1);
+        test.equal(true,  this.plugin.in_list('white', 'mail', 'MATT@exam.ple'));
+        test.done();
+    },
     'white, rcpt': function (test) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { white: { rcpt: 'test file name' }}};
@@ -354,14 +362,18 @@ exports.rcpt_to_access = {
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
     },
     'whitelisted addr': function (test) {
-        test.expect(2);
+        test.expect(4);
+        let calls = 0;
         const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
+            if (++calls == 2) {
+                test.done();
+            }
         }.bind(this);
         this.plugin.list.white.rcpt['user@example.com']=true;
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
+        this.plugin.rcpt_to_access(cb, this.connection, [new Address('<USER@example.com>')]);
     },
     'whitelisted addr, accept enabled': function (test) {
         test.expect(2);
