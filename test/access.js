@@ -148,6 +148,19 @@ exports.in_re_list = {
     },
 };
 
+exports.load_file = {
+    setUp : _set_up,
+    'case normalizing': function (test) {
+        test.expect(3);
+        console.log(this.plugin.config.root_path);
+        this.plugin.load_file('white', 'rcpt');
+        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com'));
+        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com')); // was ADMIN2@EXAMPLE.com
+        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin1@example.com')); // was admin3@EXAMPLE.com
+        test.done();
+    }
+}
+
 exports.load_re_file = {
     setUp : _set_up,
     'whitelist': function (test) {
