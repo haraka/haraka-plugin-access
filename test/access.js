@@ -164,12 +164,13 @@ exports.load_file = {
 exports.load_re_file = {
     setUp : _set_up,
     'whitelist': function (test) {
-        test.expect(3);
+        test.expect(4);
         this.plugin.load_re_file('white', 'mail');
         test.ok(this.plugin.list_re);
         // console.log(this.plugin.temp);
         test.equal(true,  this.plugin.in_re_list('white', 'mail', 'list@harakamail.com'));
         test.equal(false, this.plugin.in_re_list('white', 'mail', 'list@harail.com'));
+        test.equal(false, this.plugin.in_re_list('white', 'mail', 'LIST@harail.com'));
         test.done();
     },
 };
