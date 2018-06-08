@@ -13,12 +13,10 @@ const _set_up = function (done) {
     this.plugin.register();
 
     this.connection = fixtures.connection.createConnection();
-    this.connection.transaction = {
-        results: new fixtures.results(this.connection),
-    };
+    this.connection.init_transaction();
 
     done();
-};
+}
 
 exports.in_list = {
     setUp : _set_up,
@@ -90,7 +88,7 @@ exports.in_list = {
         test.equal(false, this.plugin.in_list('black', 'helo', 'matt@non-exist'));
         test.done();
     },
-};
+}
 
 exports.in_re_list = {
     setUp : _set_up,
@@ -154,7 +152,7 @@ exports.in_re_list = {
         test.equal(false, this.plugin.in_re_list('black', 'helo', 'matt@non-exist'));
         test.done();
     },
-};
+}
 
 exports.load_file = {
     setUp : _set_up,
@@ -181,7 +179,7 @@ exports.load_re_file = {
         test.equal(false, this.plugin.in_re_list('white', 'mail', 'LIST@harail.com'));
         test.done();
     },
-};
+}
 
 exports.in_file = {
     setUp : _set_up,
@@ -192,7 +190,7 @@ exports.in_file = {
         test.equal(false, this.plugin.in_file(file, 'matt@harakamail.com', this.connection));
         test.done();
     },
-};
+}
 
 exports.in_re_file = {
     setUp : _set_up,
@@ -204,7 +202,7 @@ exports.in_re_file = {
         test.equal(false, this.plugin.in_re_file(file, 'matt@harkatamale.com'));
         test.done();
     },
-};
+}
 
 exports.rdns_access = {
     setUp : _set_up,
@@ -263,7 +261,7 @@ exports.rdns_access = {
         this.plugin.list_re.black.conn = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rdns_access(cb, this.connection);
     },
-};
+}
 
 exports.helo_access = {
     setUp : _set_up,
@@ -292,7 +290,7 @@ exports.helo_access = {
         this.plugin.cfg.check.helo=true;
         this.plugin.helo_access(cb, this.connection, 'bad.spam.com');
     },
-};
+}
 
 exports.mail_from_access = {
     setUp : _set_up,
@@ -348,7 +346,7 @@ exports.mail_from_access = {
         this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.mail_from_access(cb, this.connection, [new Address('<special@spam.com>')]);
     },
-};
+}
 
 exports.rcpt_to_access = {
     setUp : _set_up,
@@ -430,4 +428,4 @@ exports.rcpt_to_access = {
         this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<special@spam.com>')]);
     },
-};
+}
