@@ -430,7 +430,7 @@ exports.in_list = function (type, phase, address) {
         console.log(`phase not defined: ${phase}`);
         return false;
     }
-    if (plugin.list[type][phase][address]) { return true; }
+    if (plugin.list[type][phase][address.toLowerCase()]) { return true; }
     return false;
 };
 

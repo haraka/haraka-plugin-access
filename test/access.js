@@ -8,7 +8,7 @@ const fixtures     = require('haraka-test-fixtures');
 const _set_up = function (done) {
 
     this.plugin = new fixtures.plugin('access');
-    this.plugin.config.module_config(path.resolve(__dirname, 'config'));
+    this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
 
     this.plugin.register();
 
@@ -30,6 +30,14 @@ exports.in_list = {
         test.equal(true,  this.plugin.in_list('white', 'mail', 'matt@exam.ple'));
         test.equal(true,  this.plugin.in_list('white', 'mail', 'matt@example.com'));
         test.equal(false, this.plugin.in_list('white', 'mail', 'matt@non-exist'));
+        test.done();
+    },
+    'white, mail, case': function (test) {
+        const list = {'matt@exam.ple':true,'matt@example.com':true};
+        this.plugin.cfg  = { white: { mail: 'test no file' }};
+        this.plugin.list = { white: { mail: list }};
+        test.expect(1);
+        test.equal(true,  this.plugin.in_list('white', 'mail', 'MATT@exam.ple'));
         test.done();
     },
     'white, rcpt': function (test) {
@@ -148,15 +156,29 @@ exports.in_re_list = {
     },
 };
 
+exports.load_file = {
+    setUp : _set_up,
+    'case normalizing': function (test) {
+        test.expect(3);
+        console.log(this.plugin.config.root_path);
+        this.plugin.load_file('white', 'rcpt');
+        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com'));
+        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com')); // was ADMIN2@EXAMPLE.com
+        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin1@example.com')); // was admin3@EXAMPLE.com
+        test.done();
+    }
+}
+
 exports.load_re_file = {
     setUp : _set_up,
     'whitelist': function (test) {
-        test.expect(3);
+        test.expect(4);
         this.plugin.load_re_file('white', 'mail');
         test.ok(this.plugin.list_re);
         // console.log(this.plugin.temp);
         test.equal(true,  this.plugin.in_re_list('white', 'mail', 'list@harakamail.com'));
         test.equal(false, this.plugin.in_re_list('white', 'mail', 'list@harail.com'));
+        test.equal(false, this.plugin.in_re_list('white', 'mail', 'LIST@harail.com'));
         test.done();
     },
 };
@@ -340,14 +362,18 @@ exports.rcpt_to_access = {
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
     },
     'whitelisted addr': function (test) {
-        test.expect(2);
+        test.expect(4);
+        let calls = 0;
         const cb = function (rc) {
             test.equal(undefined, rc);
             test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
+            if (++calls == 2) {
+                test.done();
+            }
         }.bind(this);
         this.plugin.list.white.rcpt['user@example.com']=true;
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
+        this.plugin.rcpt_to_access(cb, this.connection, [new Address('<USER@example.com>')]);
     },
     'whitelisted addr, accept enabled': function (test) {
         test.expect(2);
