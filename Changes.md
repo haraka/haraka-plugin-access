@@ -1,3 +1,7 @@
+# 1.1.2 - 2018-11-10
+
+- use header.get_decoded('from'), was get('from')
+
 # 1.1.1 - 2018-06-09
 
 - #9: make all mail address comparisons case insensitive, instead of the previously mixed behavior

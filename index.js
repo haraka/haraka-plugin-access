@@ -380,7 +380,7 @@ exports.data_any = function (next, connection) {
         return next();
     }
 
-    const hdr_from = connection.transaction.header.get('From');
+    const hdr_from = connection.transaction.header.get_decoded('From');
     if (!hdr_from) {
         connection.transaction.results.add(plugin, {fail: 'data(missing_from)'});
         return next();
