@@ -1,3 +1,8 @@
+
+# 1.1.3 - 2018-11-16
+
+- check if OD was found before attemping to use it
+
 # 1.1.2 - 2018-11-10
 
 - use header.get_decoded('from'), was get('from')
