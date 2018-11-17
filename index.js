@@ -388,10 +388,15 @@ exports.data_any = function (next, connection) {
 
     const hdr_addr = haddr.parse(hdr_from)[0];
     if (!hdr_addr) {
-        connection.transaction.results.add(plugin, {fail: 'data(unparsable_from)'});
+        connection.transaction.results.add(plugin, {fail: `data(unparsable_from:${hdr_from})`});
         return next();
     }
+
     const hdr_dom = tlds.get_organizational_domain(hdr_addr.host());
+    if (!hdr_dom) {
+        connection.transaction.results.add(plugin, {fail: `data(no_od_from:${hdr_addr})`});
+        return next();
+    }
 
     const file = plugin.cfg.domain.any;
     if (plugin.in_list('domain', 'any', `!${hdr_dom}`)) {
@@ -410,11 +415,12 @@ exports.data_any = function (next, connection) {
 
 exports.in_list = function (type, phase, address) {
     const plugin = this;
-    if (!plugin.list[type][phase]) {
+    if (plugin.list[type][phase] === undefined) {
         console.log(`phase not defined: ${phase}`);
         return false;
     }
-    if (plugin.list[type][phase][address.toLowerCase()]) { return true; }
+    if (!address) return false;
+    if (plugin.list[type][phase][address.toLowerCase()]) return true;
     return false;
 }
 
