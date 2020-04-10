@@ -1,9 +1,12 @@
 engines:
   eslint:
     enabled: true
-    channel: "eslint-5"
+    channel: "eslint-6"
     config:
       config: ".eslintrc.yaml"
+    checks:
+      complexity:
+        enabled: false
 
 ratings:
    paths:
