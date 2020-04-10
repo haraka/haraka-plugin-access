@@ -1,6 +1,7 @@
-[![Build Status][ci-img]][ci-url]
+![CI Tests](https://github.com/haraka/haraka-plugin-access/workflows/CI%20Tests/badge.svg)
+![CI Tests - Windows](https://github.com/haraka/haraka-plugin-access/workflows/CI%20Tests%20-%20Windows/badge.svg)
+![Test Coverage](https://github.com/haraka/haraka-plugin-access/workflows/Test%20Coverage/badge.svg)
 [![Code Climate][clim-img]][clim-url]
-[![Windows Build Status][ci-win-img]][ci-win-url]
 
 [![NPM][npm-img]][npm-url]
 
@@ -216,10 +217,6 @@ OD is *bbc.co.uk*.
 
 
 <!-- leave these buried at the bottom of the document -->
-[ci-img]: https://travis-ci.org/haraka/haraka-plugin-access.svg
-[ci-url]: https://travis-ci.org/haraka/haraka-plugin-access
-[ci-win-img]: https://ci.appveyor.com/api/projects/status/r7oitgpijroaia4n?svg=true
-[ci-win-url]: https://ci.appveyor.com/project/msimerson/haraka-plugin-access
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
 [npm-img]: https://nodei.co/npm/haraka-plugin-access.png
