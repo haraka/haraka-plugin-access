@@ -1,6 +1,5 @@
 [![Build Status][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
-[![Greenkeeper badge][gk-img]][gk-url]
 [![NPM][npm-img]][npm-url]
 [![Windows Build Status][ci-win-img]][ci-win-url]
 
@@ -222,7 +221,5 @@ OD is *bbc.co.uk*.
 [ci-win-url]: https://ci.appveyor.com/project/msimerson/haraka-plugin-access
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
-[gk-img]: https://badges.greenkeeper.io/haraka/haraka-plugin-access.svg
-[gk-url]: https://greenkeeper.io/
 [npm-img]: https://nodei.co/npm/haraka-plugin-access.png
 [npm-url]: https://www.npmjs.com/package/haraka-plugin-access
