@@ -386,7 +386,15 @@ exports.data_any = function (next, connection) {
         return next();
     }
 
-    const hdr_addr = haddr.parse(hdr_from)[0];
+    let hdr_addr;
+    try {
+        hdr_addr = haddr.parse(hdr_from)[0];
+    }
+    catch (e) {
+        connection.transaction.results.add(plugin, {fail: `data(unparsable_from:${hdr_from})`});
+        return next();
+    }
+
     if (!hdr_addr) {
         connection.transaction.results.add(plugin, {fail: `data(unparsable_from:${hdr_from})`});
         return next();
@@ -439,11 +447,9 @@ exports.in_re_list = function (type, phase, address) {
 
 exports.in_file = function (file_name, address, connection) {
     const plugin = this;
-    // using indexOf on an array here is about 20x slower than testing against
-    // a key in an object
+    // using indexOf on an array here is about 20x slower than testing against a key in an object
     connection.logdebug(plugin, `checking ${address} against ${file_name}`);
-    return (plugin.config.get(file_name, 'list')
-        .indexOf(address) === -1) ? false : true;
+    return (plugin.config.get(file_name, 'list').indexOf(address) === -1) ? false : true;
 }
 
 exports.in_re_file = function (file_name, address) {
@@ -462,7 +468,7 @@ exports.in_re_file = function (file_name, address) {
 exports.load_file = function (type, phase) {
     const plugin = this;
     if (!plugin.cfg.check[phase]) {
-        plugin.loginfo(plugin, `skipping ${plugin.cfg[type][phase]}`);
+        plugin.logdebug(plugin, `skipping ${plugin.cfg[type][phase]}`);
         return;
     }
 
@@ -489,7 +495,7 @@ exports.load_file = function (type, phase) {
 exports.load_re_file = function (type, phase) {
     const plugin = this;
     if (!plugin.cfg.check[phase]) {
-        plugin.loginfo(plugin, `skipping ${plugin.cfg.re[type][phase]}`);
+        plugin.logdebug(plugin, `skipping ${plugin.cfg.re[type][phase]}`);
         return;
     }
 
@@ -514,7 +520,7 @@ exports.load_re_file = function (type, phase) {
 exports.load_domain_file = function (type, phase) {
     const plugin = this;
     if (!plugin.cfg.check[phase]) {
-        plugin.loginfo(plugin, `skipping ${plugin.cfg[type][phase]}`);
+        plugin.logdebug(plugin, `skipping ${plugin.cfg[type][phase]}`);
         return;
     }
 

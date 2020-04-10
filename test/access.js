@@ -1,431 +1,462 @@
 'use strict';
 
-const path         = require('path');
+const assert       = require('assert')
+const path         = require('path')
 
 const Address      = require('address-rfc2821').Address;
 const fixtures     = require('haraka-test-fixtures');
 
-const _set_up = function (done) {
+describe('in_list', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        done()
+    })
 
-    this.plugin = new fixtures.plugin('access');
-    this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
-
-    this.plugin.register();
-
-    this.connection = fixtures.connection.createConnection();
-    this.connection.init_transaction();
-
-    done();
-}
-
-exports.in_list = {
-    setUp : _set_up,
-    'white, mail': function (test) {
+    it('white, mail', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg  = { white: { mail: 'test no file' }};
         this.plugin.list = { white: { mail: list }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_list('white', 'mail', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_list('white', 'mail', 'matt@example.com'));
-        test.equal(false, this.plugin.in_list('white', 'mail', 'matt@non-exist'));
-        test.done();
-    },
-    'white, mail, case': function (test) {
+        assert.equal(true,  this.plugin.in_list('white', 'mail', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_list('white', 'mail', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_list('white', 'mail', 'matt@non-exist'));
+        done();
+    })
+
+    it('white, mail, case', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg  = { white: { mail: 'test no file' }};
         this.plugin.list = { white: { mail: list }};
-        test.expect(1);
-        test.equal(true,  this.plugin.in_list('white', 'mail', 'MATT@exam.ple'));
-        test.done();
-    },
-    'white, rcpt': function (test) {
+        assert.equal(true,  this.plugin.in_list('white', 'mail', 'MATT@exam.ple'));
+        done();
+    })
+
+    it('white, rcpt', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { white: { rcpt: 'test file name' }}};
         this.plugin.list = { white: { rcpt: list }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_list('white', 'rcpt', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_list('white', 'rcpt', 'matt@example.com'));
-        test.equal(false, this.plugin.in_list('white', 'rcpt', 'matt@non-exist'));
-        test.done();
-    },
-    'white, helo': function (test) {
+        assert.equal(true,  this.plugin.in_list('white', 'rcpt', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_list('white', 'rcpt', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_list('white', 'rcpt', 'matt@non-exist'));
+        done();
+    })
+
+    it('white, helo', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { white: { helo: 'test file name' }}};
         this.plugin.list = { white: { helo: list }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_list('white', 'helo', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_list('white', 'helo', 'matt@example.com'));
-        test.equal(false, this.plugin.in_list('white', 'helo', 'matt@non-exist'));
-        test.done();
-    },
-    'black, mail': function (test) {
+        assert.equal(true,  this.plugin.in_list('white', 'helo', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_list('white', 'helo', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_list('white', 'helo', 'matt@non-exist'));
+        done();
+    })
+
+    it('black, mail', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { black: { mail: 'test file name' }}};
         this.plugin.list = { black: { mail: list }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_list('black', 'mail', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_list('black', 'mail', 'matt@example.com'));
-        test.equal(false, this.plugin.in_list('black', 'mail', 'matt@non-exist'));
-        test.done();
-    },
-    'black, rcpt': function (test) {
+        assert.equal(true,  this.plugin.in_list('black', 'mail', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_list('black', 'mail', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_list('black', 'mail', 'matt@non-exist'));
+        done();
+    })
+
+    it('black, rcpt', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { black: { rcpt: 'test file name' }}};
         this.plugin.list = { black: { rcpt: list }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_list('black', 'rcpt', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_list('black', 'rcpt', 'matt@example.com'));
-        test.equal(false, this.plugin.in_list('black', 'rcpt', 'matt@non-exist'));
-        test.done();
-    },
-    'black, helo': function (test) {
+        assert.equal(true,  this.plugin.in_list('black', 'rcpt', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_list('black', 'rcpt', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_list('black', 'rcpt', 'matt@non-exist'));
+        done();
+    })
+
+    it('black, helo', function (done) {
         const list = {'matt@exam.ple':true,'matt@example.com':true};
         this.plugin.cfg = { re: { black: { helo: 'test file name' }}};
         this.plugin.list = { black: { helo: list }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_list('black', 'helo', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_list('black', 'helo', 'matt@example.com'));
-        test.equal(false, this.plugin.in_list('black', 'helo', 'matt@non-exist'));
-        test.done();
-    },
-}
+        assert.equal(true,  this.plugin.in_list('black', 'helo', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_list('black', 'helo', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_list('black', 'helo', 'matt@non-exist'));
+        done();
+    })
+})
 
-exports.in_re_list = {
-    setUp : _set_up,
-    'white, mail': function (test) {
+describe('in_re_list', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        done()
+    })
+
+    it('white, mail', function (done) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { mail: 'test file name' }}};
         this.plugin.list_re = { white: { mail: new RegExp(`^(${list.join('|')})$`, 'i') }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_re_list('white', 'mail', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_re_list('white', 'mail', 'matt@example.com'));
-        test.equal(false, this.plugin.in_re_list('white', 'mail', 'matt@non-exist'));
-        test.done();
-    },
-    'white, rcpt': function (test) {
+        assert.equal(true,  this.plugin.in_re_list('white', 'mail', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_re_list('white', 'mail', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_re_list('white', 'mail', 'matt@non-exist'));
+        done();
+    })
+
+    it('white, rcpt', function (done) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { rcpt: 'test file name' }}};
         this.plugin.list_re = { white: { rcpt: new RegExp(`^(${list.join('|')})$`, 'i') }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_re_list('white', 'rcpt', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_re_list('white', 'rcpt', 'matt@example.com'));
-        test.equal(false, this.plugin.in_re_list('white', 'rcpt', 'matt@non-exist'));
-        test.done();
-    },
-    'white, helo': function (test) {
+        assert.equal(true,  this.plugin.in_re_list('white', 'rcpt', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_re_list('white', 'rcpt', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_re_list('white', 'rcpt', 'matt@non-exist'));
+        done();
+    })
+
+    it('white, helo', function (done) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { white: { helo: 'test file name' }}};
         this.plugin.list_re = { white: { helo: new RegExp(`^(${list.join('|')})$`, 'i') }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_re_list('white', 'helo', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_re_list('white', 'helo', 'matt@example.com'));
-        test.equal(false, this.plugin.in_re_list('white', 'helo', 'matt@non-exist'));
-        test.done();
-    },
-    'black, mail': function (test) {
+        assert.equal(true,  this.plugin.in_re_list('white', 'helo', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_re_list('white', 'helo', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_re_list('white', 'helo', 'matt@non-exist'));
+        done();
+    })
+
+    it('black, mail', function (done) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { mail: 'test file name' }}};
         this.plugin.list_re = { black: { mail: new RegExp(`^(${list.join('|')})$`, 'i') }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_re_list('black', 'mail', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_re_list('black', 'mail', 'matt@example.com'));
-        test.equal(false, this.plugin.in_re_list('black', 'mail', 'matt@non-exist'));
-        test.done();
-    },
-    'black, rcpt': function (test) {
+        assert.equal(true,  this.plugin.in_re_list('black', 'mail', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_re_list('black', 'mail', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_re_list('black', 'mail', 'matt@non-exist'));
+        done();
+    })
+
+    it('black, rcpt', function (done) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { rcpt: 'test file name' }}};
         this.plugin.list_re = { black: { rcpt: new RegExp(`^(${list.join('|')})$`, 'i') }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_re_list('black', 'rcpt', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_re_list('black', 'rcpt', 'matt@example.com'));
-        test.equal(false, this.plugin.in_re_list('black', 'rcpt', 'matt@non-exist'));
-        test.done();
-    },
-    'black, helo': function (test) {
+        assert.equal(true,  this.plugin.in_re_list('black', 'rcpt', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_re_list('black', 'rcpt', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_re_list('black', 'rcpt', 'matt@non-exist'));
+        done();
+    })
+
+    it('black, helo', function (done) {
         const list = ['.*exam.ple','.*example.com'];
         this.plugin.cfg = { re: { black: { helo: 'test file name' }}};
         this.plugin.list_re = { black: { helo: new RegExp(`^(${list.join('|')})$`, 'i') }};
-        test.expect(3);
-        test.equal(true,  this.plugin.in_re_list('black', 'helo', 'matt@exam.ple'));
-        test.equal(true,  this.plugin.in_re_list('black', 'helo', 'matt@example.com'));
-        test.equal(false, this.plugin.in_re_list('black', 'helo', 'matt@non-exist'));
-        test.done();
-    },
-}
+        assert.equal(true,  this.plugin.in_re_list('black', 'helo', 'matt@exam.ple'));
+        assert.equal(true,  this.plugin.in_re_list('black', 'helo', 'matt@example.com'));
+        assert.equal(false, this.plugin.in_re_list('black', 'helo', 'matt@non-exist'));
+        done();
+    })
+})
 
-exports.load_file = {
-    setUp : _set_up,
-    'case normalizing': function (test) {
-        test.expect(3);
+describe('load_file', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        done()
+    })
+
+    it('case normalizing', function (done) {
         console.log(this.plugin.config.root_path);
         this.plugin.load_file('white', 'rcpt');
-        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com'));
-        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com')); // was ADMIN2@EXAMPLE.com
-        test.equal(true, this.plugin.in_list('white', 'rcpt', 'admin1@example.com')); // was admin3@EXAMPLE.com
-        test.done();
-    }
-}
+        assert.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com'));
+        assert.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com')); // was ADMIN2@EXAMPLE.com
+        assert.equal(true, this.plugin.in_list('white', 'rcpt', 'admin1@example.com')); // was admin3@EXAMPLE.com
+        done();
+    })
+})
 
-exports.load_re_file = {
-    setUp : _set_up,
-    'whitelist': function (test) {
-        test.expect(4);
+describe('load_re_file', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        done()
+    })
+
+    it('whitelist', function (done) {
         this.plugin.load_re_file('white', 'mail');
-        test.ok(this.plugin.list_re);
+        assert.ok(this.plugin.list_re);
         // console.log(this.plugin.temp);
-        test.equal(true,  this.plugin.in_re_list('white', 'mail', 'list@harakamail.com'));
-        test.equal(false, this.plugin.in_re_list('white', 'mail', 'list@harail.com'));
-        test.equal(false, this.plugin.in_re_list('white', 'mail', 'LIST@harail.com'));
-        test.done();
-    },
-}
+        assert.equal(true,  this.plugin.in_re_list('white', 'mail', 'list@harakamail.com'));
+        assert.equal(false, this.plugin.in_re_list('white', 'mail', 'list@harail.com'));
+        assert.equal(false, this.plugin.in_re_list('white', 'mail', 'LIST@harail.com'));
+        done();
+    })
+})
 
-exports.in_file = {
-    setUp : _set_up,
-    'in_file': function (test) {
-        test.expect(2);
+describe('in_file', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        this.connection = fixtures.connection.createConnection();
+        this.connection.init_transaction();
+        done()
+    })
+
+    it('in_file', function (done) {
         const file = 'mail_from.access.whitelist';
-        test.equal(true,  this.plugin.in_file(file, 'haraka@harakamail.com', this.connection));
-        test.equal(false, this.plugin.in_file(file, 'matt@harakamail.com', this.connection));
-        test.done();
-    },
-}
+        assert.equal(true,  this.plugin.in_file(file, 'haraka@harakamail.com', this.connection));
+        assert.equal(false, this.plugin.in_file(file, 'matt@harakamail.com', this.connection));
+        done();
+    })
+})
 
-exports.in_re_file = {
-    setUp : _set_up,
-    'in_re_file': function (test) {
-        test.expect(2);
+describe('in_re_file', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        this.connection = fixtures.connection.createConnection();
+        this.connection.init_transaction();
+        done()
+    })
+
+    it('in_re_file', function (done) {
         const file = 'mail_from.access.whitelist_regex';
         // console.log(this.plugin.cfg);
-        test.equal(true,  this.plugin.in_re_file(file, 'list@harakamail.com'));
-        test.equal(false, this.plugin.in_re_file(file, 'matt@harkatamale.com'));
-        test.done();
-    },
-}
+        assert.equal(true,  this.plugin.in_re_file(file, 'list@harakamail.com'));
+        assert.equal(false, this.plugin.in_re_file(file, 'matt@harkatamale.com'));
+        done();
+    })
+})
 
-exports.rdns_access = {
-    setUp : _set_up,
-    'no list': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            // console.log(this.connection.results.get('access'));
-            test.equal(undefined, rc);
-            test.ok(this.connection.results.get('access').msg.length);
-            test.done();
-        }.bind(this);
+describe('rdns_access', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        this.connection = fixtures.connection.createConnection();
+        this.connection.init_transaction();
+        done()
+    })
+
+    it('no list', function (done) {
         this.connection.remote.ip='1.1.1.1';
         this.connection.remote.host='host.example.com';
-        this.plugin.rdns_access(cb, this.connection);
-    },
-    'whitelist': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
+        this.plugin.rdns_access((rc) => {
             // console.log(this.connection.results.get('access'));
-            test.equal(undefined, rc);
-            test.ok(this.connection.results.get('access').pass.length);
-            // test.ok(this.connection.results.has('access', 'pass', /white/));
-            test.done();
-        }.bind(this);
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.results.get('access').msg.length);
+            done();
+        }, this.connection);
+    })
+
+    it('whitelist', function (done) {
         this.connection.remote.ip='1.1.1.1';
         this.connection.remote.host='host.example.com';
         this.plugin.list.white.conn['host.example.com']=true;
-        this.plugin.rdns_access(cb, this.connection);
-    },
-    'blacklist': function (test) {
-        test.expect(3);
-        const cb = function (rc, msg) {
-            // console.log(this.connection.results.get('access'));
-            test.equal(DENYDISCONNECT, rc);
-            test.equal("host.example.com [1.1.1.1] You are not allowed to connect", msg);
-            test.ok(this.connection.results.get('access').fail.length);
-            test.done();
-        }.bind(this);
+        this.plugin.rdns_access((rc) => {
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.results.get('access').pass.length);
+            // assert.ok(this.connection.results.has('access', 'pass', /white/));
+            done();
+        }, this.connection);
+    })
+
+    it('blacklist', function (done) {
         this.connection.remote.ip='1.1.1.1';
         this.connection.remote.host='host.example.com';
         this.plugin.list.black.conn['host.example.com']=true;
-        this.plugin.rdns_access(cb, this.connection);
-    },
-    'blacklist regex': function (test) {
-        test.expect(3);
-        const cb = function (rc, msg) {
-            // console.log(this.connection.results.get('access'));
-            test.equal(DENYDISCONNECT, rc);
-            test.equal("host.antispam.com [1.1.1.1] You are not allowed to connect", msg);
-            test.ok(this.connection.results.get('access').fail.length);
-            test.done();
-        }.bind(this);
+        this.plugin.rdns_access((rc, msg) => {
+            assert.equal(DENYDISCONNECT, rc);
+            assert.equal("host.example.com [1.1.1.1] You are not allowed to connect", msg);
+            assert.ok(this.connection.results.get('access').fail.length);
+            done();
+        }, this.connection);
+    })
+
+    it('blacklist regex', function (done) {
         this.connection.remote.ip='1.1.1.1';
         this.connection.remote.host='host.antispam.com';
         const black = [ '.*spam.com' ];
         this.plugin.list_re.black.conn = new RegExp(`^(${black.join('|')})$`, 'i');
-        this.plugin.rdns_access(cb, this.connection);
-    },
-}
+        this.plugin.rdns_access( (rc, msg) => {
+            assert.equal(DENYDISCONNECT, rc);
+            assert.equal("host.antispam.com [1.1.1.1] You are not allowed to connect", msg);
+            assert.ok(this.connection.results.get('access').fail.length);
+            done();
+        }, this.connection);
+    })
+})
 
-exports.helo_access = {
-    setUp : _set_up,
-    'no list': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            const r = this.connection.results.get('access');
-            test.equal(undefined, rc);
-            test.ok(r && r.msg && r.msg.length);
-            test.done();
-        }.bind(this);
+describe('helo_access', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        this.connection = fixtures.connection.createConnection();
+        done()
+    })
+
+    it('no list', function (done) {
         this.plugin.cfg.check.helo=true;
-        this.plugin.helo_access(cb, this.connection, 'host.example.com');
-    },
-    'blacklisted regex': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            test.equal(DENY, rc);
+        this.plugin.helo_access((rc) => {
             const r = this.connection.results.get('access');
-            test.ok(r && r.fail && r.fail.length);
-            test.done();
-        }.bind(this);
+            assert.equal(undefined, rc);
+            assert.ok(r && r.msg && r.msg.length);
+            done();
+        }, this.connection, 'host.example.com');
+    })
+
+    it('blacklisted regex', function (done) {
         const black = [ '.*spam.com' ];
         this.plugin.list_re.black.helo =
             new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.cfg.check.helo=true;
-        this.plugin.helo_access(cb, this.connection, 'bad.spam.com');
-    },
-}
+        this.plugin.helo_access((rc) => {
+            assert.equal(DENY, rc);
+            const r = this.connection.results.get('access');
+            assert.ok(r && r.fail && r.fail.length);
+            done();
+        }, this.connection, 'bad.spam.com');
+    })
+})
 
-exports.mail_from_access = {
-    setUp : _set_up,
-    'no lists populated': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            test.equal(undefined, rc);
-            test.ok(this.connection.transaction.results.get('access').msg.length);
-            test.done();
-        }.bind(this);
-        this.plugin.mail_from_access(cb, this.connection, [new Address('<list@unknown.com>')]);
-    },
-    'whitelisted addr': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            test.equal(undefined, rc);
-            test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
-        }.bind(this);
+describe('mail_from_access', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        this.connection = fixtures.connection.createConnection();
+        this.connection.init_transaction();
+        done()
+    })
+
+    it('no lists populated', function (done) {
+        this.plugin.mail_from_access( (rc) => {
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.transaction.results.get('access').msg.length);
+            done();
+        }, this.connection, [new Address('<list@unknown.com>')]);
+    })
+
+    it('whitelisted addr', function (done) {
         this.plugin.list.white.mail['list@harakamail.com']=true;
-        this.plugin.mail_from_access(cb, this.connection, [new Address('<list@harakamail.com>')]);
-    },
-    'blacklisted addr': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            test.equal(DENY, rc);
-            test.ok(this.connection.transaction.results.get('access').fail.length);
-            test.done();
-        }.bind(this);
+        this.plugin.mail_from_access( (rc) => {
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.transaction.results.get('access').pass.length);
+            done();
+        }, this.connection, [new Address('<list@harakamail.com>')]);
+    })
+
+    it('blacklisted addr', function (done) {
         this.plugin.list.black.mail['list@badmail.com']=true;
-        this.plugin.mail_from_access(cb, this.connection, [new Address('<list@badmail.com>')]);
-    },
-    'blacklisted domain': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            test.equal(DENY, rc);
-            test.ok(this.connection.transaction.results.get('access').fail.length);
-            test.done();
-        }.bind(this);
+        this.plugin.mail_from_access( (rc) => {
+            assert.equal(DENY, rc);
+            assert.ok(this.connection.transaction.results.get('access').fail.length);
+            done();
+        }, this.connection, [new Address('<list@badmail.com>')]);
+    })
+
+    it('blacklisted domain', function (done) {
         const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i');
-        this.plugin.mail_from_access(cb, this.connection, [new Address('<bad@spam.com>')]);
-    },
-    'blacklisted domain, white addr': function (test) {
-        test.expect(2);
-        const cb = function (rc) {
-            test.equal(undefined, rc);
-            test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
-        }.bind(this);
+        this.plugin.mail_from_access( (rc) => {
+            assert.equal(DENY, rc);
+            assert.ok(this.connection.transaction.results.get('access').fail.length);
+            done();
+        }, this.connection, [new Address('<bad@spam.com>')]);
+    })
+
+    it('blacklisted domain, white addr', function (done) {
         this.plugin.list.white.mail['special@spam.com']=true;
         const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i');
-        this.plugin.mail_from_access(cb, this.connection, [new Address('<special@spam.com>')]);
-    },
-}
+        this.plugin.mail_from_access( (rc) => {
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.transaction.results.get('access').pass.length);
+            done();
+        }, this.connection, [new Address('<special@spam.com>')]);
+    })
+})
 
-exports.rcpt_to_access = {
-    setUp : _set_up,
-    'no lists populated': function (test) {
-        test.expect(2);
+describe('rcpt_to_access', function () {
+    beforeEach(function (done) {
+        this.plugin = new fixtures.plugin('access');
+        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
+        this.plugin.register();
+        this.connection = fixtures.connection.createConnection();
+        this.connection.init_transaction();
+        done()
+    })
+
+    it('no lists populated', function (done) {
         const cb = function (rc) {
-            test.equal(undefined, rc);
-            test.ok(this.connection.transaction.results.get('access').msg.length);
-            test.done();
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.transaction.results.get('access').msg.length);
+            done();
         }.bind(this);
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
-    },
-    'whitelisted addr': function (test) {
-        test.expect(4);
+    })
+
+    it('whitelisted addr', function (done) {
         let calls = 0;
         const cb = function (rc) {
-            test.equal(undefined, rc);
-            test.ok(this.connection.transaction.results.get('access').pass.length);
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.transaction.results.get('access').pass.length);
             if (++calls == 2) {
-                test.done();
+                done();
             }
         }.bind(this);
         this.plugin.list.white.rcpt['user@example.com']=true;
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<USER@example.com>')]);
-    },
-    'whitelisted addr, accept enabled': function (test) {
-        test.expect(2);
+    })
+
+    it('whitelisted addr, accept enabled', function (done) {
         const cb = function (rc) {
-            test.equal(OK, rc);
-            test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
+            assert.equal(OK, rc);
+            assert.ok(this.connection.transaction.results.get('access').pass.length);
+            done();
         }.bind(this);
         this.plugin.cfg.rcpt.accept=true;
         this.plugin.list.white.rcpt['user@example.com']=true;
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
-    },
-    'regex whitelisted addr, accept enabled': function (test) {
-        test.expect(2);
+    })
+
+    it('regex whitelisted addr, accept enabled', function (done) {
         const cb = function (rc) {
-            test.equal(OK, rc);
-            test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
+            assert.equal(OK, rc);
+            assert.ok(this.connection.transaction.results.get('access').pass.length);
+            done();
         }.bind(this);
         this.plugin.cfg.rcpt.accept=true;
         this.plugin.list_re.white.rcpt = new RegExp(`^user@example.com$`, 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@example.com>')]);
-    },
-    'blacklisted addr': function (test) {
-        test.expect(2);
+    })
+
+    it('blacklisted addr', function (done) {
         const cb = function (rc) {
-            test.equal(DENY, rc);
-            test.ok(this.connection.transaction.results.get('access').fail.length);
-            test.done();
+            assert.equal(DENY, rc);
+            assert.ok(this.connection.transaction.results.get('access').fail.length);
+            done();
         }.bind(this);
         this.plugin.list.black.rcpt['user@badmail.com']=true;
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<user@badmail.com>')]);
-    },
-    'blacklisted domain': function (test) {
-        test.expect(2);
+    })
+
+    it('blacklisted domain', function (done) {
         const cb = function (rc) {
-            test.equal(DENY, rc);
-            test.ok(this.connection.transaction.results.get('access').fail.length);
-            test.done();
+            assert.equal(DENY, rc);
+            assert.ok(this.connection.transaction.results.get('access').fail.length);
+            done();
         }.bind(this);
         const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<bad@spam.com>')]);
-    },
-    'blacklisted domain, white addr': function (test) {
-        test.expect(2);
+    })
+
+    it('blacklisted domain, white addr', function (done) {
         const cb = function (rc) {
-            test.equal(undefined, rc);
-            test.ok(this.connection.transaction.results.get('access').pass.length);
-            test.done();
+            assert.equal(undefined, rc);
+            assert.ok(this.connection.transaction.results.get('access').pass.length);
+            done();
         }.bind(this);
         this.plugin.list.white.rcpt['special@spam.com'] = true;
         const black = [ '.*@spam.com' ];
         this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i');
         this.plugin.rcpt_to_access(cb, this.connection, [new Address('<special@spam.com>')]);
-    },
-}
+    })
+})

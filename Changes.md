@@ -1,4 +1,8 @@
 
+# 1.1.4 - 2020-04-09
+
+- wrap from parsing in a try #20
+
 # 1.1.3 - 2018-11-16
 
 - check if OD was found before attemping to use it
