@@ -468,7 +468,7 @@ exports.in_re_file = function (file_name, address) {
 exports.load_file = function (type, phase) {
     const plugin = this;
     if (!plugin.cfg.check[phase]) {
-        plugin.loginfo(plugin, `skipping ${plugin.cfg[type][phase]}`);
+        plugin.logdebug(plugin, `skipping ${plugin.cfg[type][phase]}`);
         return;
     }
 
@@ -495,7 +495,7 @@ exports.load_file = function (type, phase) {
 exports.load_re_file = function (type, phase) {
     const plugin = this;
     if (!plugin.cfg.check[phase]) {
-        plugin.loginfo(plugin, `skipping ${plugin.cfg.re[type][phase]}`);
+        plugin.logdebug(plugin, `skipping ${plugin.cfg.re[type][phase]}`);
         return;
     }
 
@@ -520,7 +520,7 @@ exports.load_re_file = function (type, phase) {
 exports.load_domain_file = function (type, phase) {
     const plugin = this;
     if (!plugin.cfg.check[phase]) {
-        plugin.loginfo(plugin, `skipping ${plugin.cfg[type][phase]}`);
+        plugin.logdebug(plugin, `skipping ${plugin.cfg[type][phase]}`);
         return;
     }
 

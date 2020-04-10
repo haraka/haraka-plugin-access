@@ -1,7 +1,8 @@
 [![Build Status][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
-[![NPM][npm-img]][npm-url]
 [![Windows Build Status][ci-win-img]][ci-win-url]
+
+[![NPM][npm-img]][npm-url]
 
 # haraka-plugin-access - ACLs
 

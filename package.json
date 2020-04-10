@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "npx eslint *.js test/*.js",
     "lintfix": "npx eslint --fix *.js test/*.js",
-    "test": "npx nodeunit"
+    "test": "npx mocha"
   },
   "repository": {
     "type": "git",
@@ -27,8 +27,7 @@
     "eslint": ">=5",
     "eslint-plugin-haraka": "*",
     "haraka-test-fixtures": "*",
-    "mocha": "*",
-    "nodeunit": "*"
+    "mocha": "*"
   },
   "dependencies": {
     "address-rfc2822": "*",
