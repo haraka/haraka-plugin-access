@@ -5,6 +5,7 @@
 
 - ci: use shared GHA workflows
 - ci: add submodule .release
+- ci: expand codeclimate config
 
 
 ### 1.1.4 - 2020-04-09
