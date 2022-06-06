@@ -1,25 +1,17 @@
-![CI Tests](https://github.com/haraka/haraka-plugin-access/workflows/CI%20Tests/badge.svg)
-![CI Tests - Windows](https://github.com/haraka/haraka-plugin-access/workflows/CI%20Tests%20-%20Windows/badge.svg)
-![Test Coverage](https://github.com/haraka/haraka-plugin-access/workflows/Test%20Coverage/badge.svg)
+[![CI Tests][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
 
 [![NPM][npm-img]][npm-url]
 
 # haraka-plugin-access - ACLs
 
-This plugin applies Access Control Lists during the connect, helo, mail, and
-rcpt phases of the SMTP conversation. It has a split personality, supporting
-two somewhat different modes, **any** -vs- **precise**.
+This plugin applies Access Control Lists during the connect, helo, mail, and rcpt phases of the SMTP conversation. It has a split personality, supporting two somewhat different modes, **any** -vs- **precise**.
 
 ## ANY
 
-The **any** check is premised on blocking a domain
-name no matter where in the SMTP conversation it appears. That's possible using
-several regex lists in the **precise** checks, but it's also much slower.
+The **any** check is premised on blocking a domain name no matter where in the SMTP conversation it appears. That's possible using several regex lists in the **precise** checks, but it's also much slower.
 
-With **any**, just drop the offending domain name into the _access.domains_ file
-and it gets blocked for the rDNS hostname, the HELO hostname, the MAIL FROM
-domain name, and the RCPT TO domain name.
+With **any**, just drop the offending domain name into the _access.domains_ file and it gets blocked for the rDNS hostname, the HELO hostname, the MAIL FROM domain name, and the RCPT TO domain name.
 
 The **any** blacklist matches only on the [Organizational Domain](#Organizational Domain) name (see NOTES below). Entries placed in the _access.domains_ file are automatically reduced to the OD. Examples:
 
@@ -27,10 +19,7 @@ The **any** blacklist matches only on the [Organizational Domain](#Organizationa
     mail.spam-central.com  -> spam-central.com
     mail151.wayn.net       -> wayn.net
 
-In case the O.D. match is too broad, whitelist entries are placed in the same
-_access.domains_ file with a ! prefix. Whitelist entries can be email addresses
-(for the MAIL FROM and RCPT TO tests) or hostnames for the rDNS and HELO
-hostnames. To block anything from example.com but not special.example.com:
+In case the O.D. match is too broad, whitelist entries are placed in the same _access.domains_ file with a ! prefix. Whitelist entries can be email addresses (for the MAIL FROM and RCPT TO tests) or hostnames for the rDNS and HELO hostnames. To block anything from example.com but not special.example.com:
 
     example.com
     !special.example.com
@@ -43,10 +32,7 @@ person you know that still uses it:
 
 ### ANY results
 
-When a whitelisted email or domain matches, a `pass` result will be saved
-with the hook name (ex: connect:any). When a blacklisted email or domain
-matches, a `fail` result of the same syntax is stored. If neither match, a
-`msg` result is saved (ex: unlisted(connect:any)).
+When a whitelisted email or domain matches, a `pass` result will be saved with the hook name (ex: connect:any). When a blacklisted email or domain matches, a `fail` result of the same syntax is stored. If neither match, a `msg` result is saved (ex: unlisted(connect:any)).
 
 ### ANY data
 
@@ -179,16 +165,11 @@ of .\*domain.com entries to the \*\_regex files.
 
 ### rcpt accept mode
 
-By default this plugin only rejects recipients on the blacklists, and ignores
-those on the whitelists. Setting `rcpt.accept=true` enables recipient validation
-for users in whitelists, actually accepting mails instead of only blocking
-unwanted recipients.
+By default this plugin only rejects recipients on the blacklists, and ignores those on the whitelists. Setting `rcpt.accept=true` enables recipient validation for users in whitelists, actually accepting mails instead of only blocking unwanted recipients.
 
 ### Organizational Domain
 
-The OD is a term that describes the highest level portion of domain name that
-is under the control of a private organization. I'll explain, but first, lets
-clarify a few terms:
+The OD is a term that describes the highest level portion of domain name that is under the control of a private organization. I'll explain, but first, lets clarify a few terms:
 
 #### TLD
 
@@ -203,20 +184,17 @@ Top Level Domains. Domain labels at the apex of a domain name.
 
 #### Public Suffix
 
-The portion of a domain name that is operated by a registry. These are often
-synonymous with TLDs but frequently also include second and third level
-domains as well:
+The portion of a domain name that is operated by a registry. These are often synonymous with TLDs but frequently also include second and third level domains as well:
 
     com
     co.uk
 
-The Organizational Domain is the next level higher than the Public Suffix. So
-if a hostname is *mail.example.com*, and *com* is the Public Suffix, the OD is
-*example.com*. If the hostname is *www.bbc.co.uk*, the PS is *co.uk* and the
-OD is *bbc.co.uk*.
+The Organizational Domain is the next level higher than the Public Suffix. So if a hostname is *mail.example.com*, and *com* is the Public Suffix, the OD is *example.com*. If the hostname is *www.bbc.co.uk*, the PS is *co.uk* and the OD is *bbc.co.uk*.
 
 
 <!-- leave these buried at the bottom of the document -->
+[ci-img]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
 [npm-img]: https://nodei.co/npm/haraka-plugin-access.png
