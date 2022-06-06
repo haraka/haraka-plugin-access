@@ -1,5 +1,4 @@
-![CI Tests](https://github.com/haraka/haraka-plugin-access/workflows/CI%20Tests/badge.svg)
-![CI Tests - Windows](https://github.com/haraka/haraka-plugin-access/workflows/CI%20Tests%20-%20Windows/badge.svg)
+![CI Tests][ci-img]][ci-url]
 ![Test Coverage](https://github.com/haraka/haraka-plugin-access/workflows/Test%20Coverage/badge.svg)
 [![Code Climate][clim-img]][clim-url]
 
@@ -217,6 +216,8 @@ OD is *bbc.co.uk*.
 
 
 <!-- leave these buried at the bottom of the document -->
+[ci-img]: 
+[ci-url]: 
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
 [npm-img]: https://nodei.co/npm/haraka-plugin-access.png

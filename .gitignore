@@ -56,3 +56,6 @@ typings/
 
 # dotenv environment variables file
 .env
+
+haraka-update.sh
+package-lock.json
