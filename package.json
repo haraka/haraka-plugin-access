@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/haraka/haraka-plugin-access#readme",
   "devDependencies": {
-    "eslint": ">=9",
+    "eslint": ">=8",
     "eslint-plugin-haraka": "*",
     "haraka-test-fixtures": "*",
     "mocha": ">=9"

@@ -1,4 +1,4 @@
-![CI Tests][ci-img]][ci-url]
+[![CI Tests][ci-img]][ci-url]
 ![Test Coverage](https://github.com/haraka/haraka-plugin-access/workflows/Test%20Coverage/badge.svg)
 [![Code Climate][clim-img]][clim-url]
 
@@ -216,8 +216,8 @@ OD is *bbc.co.uk*.
 
 
 <!-- leave these buried at the bottom of the document -->
-[ci-img]: 
-[ci-url]: 
+[ci-img]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
 [npm-img]: https://nodei.co/npm/haraka-plugin-access.png
