@@ -18,7 +18,7 @@ exports.register = function () {
     for (p in plugin.cfg.re.black) { plugin.load_re_file('black', p); }
 
     if (plugin.cfg.check.conn) {
-        plugin.register_hook('connect', 'rdns_access');
+        plugin.register_hook('connect_init', 'rdns_access');
     }
     if (plugin.cfg.check.helo) {
         plugin.register_hook('helo',    'helo_access');
