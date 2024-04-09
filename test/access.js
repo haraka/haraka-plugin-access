@@ -7,9 +7,8 @@ const Address      = require('address-rfc2821').Address;
 const fixtures     = require('haraka-test-fixtures');
 
 describe('in_list', function () {
-    beforeEach(function (done) {
-        this.plugin = new fixtures.plugin('access');
-        done()
+    beforeEach(function () {
+        this.plugin = new fixtures.plugin('../index');
     })
 
     it('white, mail', function (done) {
