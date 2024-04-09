@@ -43,12 +43,12 @@ the message headers as well. Settings 'data=true' in the [checks] section of
 ## PRECISE
 
 The precise ACLs share a common file format with each phase having a set of
-4 files (whitelist, whitelist\_regex, blacklist, and blacklist\_regex) which
+4 files (whitelist, whitelist_regex, blacklist, and blacklist_regex) which
 are simple lists.
 
 The ACLs for each phase apply their tests in the order listed. The whitelist
 is primarily to counter blacklist entries that match too much, so the the flow
-of control is: if whitelisted, stop processing. Then apply the blacklist. 
+of control is: if whitelisted, stop processing. Then apply the blacklist.
 
 Entries in ACL files are one per line.
 
@@ -63,7 +63,7 @@ add entries to the config files for the addresses or patterns to block.
 
 ## Upgrading
 
-When upgrading from the rdns\_access, mail\_from.access, and rcpt\_to.access
+When upgrading from the rdns_access, mail_from.access, and rcpt_to.access
 plugins, be sure to remove the plugins from config/plugins, upon pain of
 wasted CPU cycles.
 
@@ -81,18 +81,20 @@ add this section to _config/access.ini_:
 
 ### Checking ACL results
 
-To check access results from other plugins, use the standard *results*
+To check access results from other plugins, use the standard _results_
 methods.
 
-    var ar = connection.results.get('access');
-    if (ar.pass.length > 2) {
-        // they passed the connection and helo checks
-    }
-     
-    var ar = connection.transaction.results.get('access');
-    if (ar.pass.length > 2) {
-        // they passed the mail and rcpt checks
-    }
+```js
+const ar = connection.results.get('access');
+if (ar.pass.length > 2) {
+    // they passed the connection and helo checks
+}
+
+const ar = connection.transaction.results.get('access');
+if (ar.pass.length > 2) {
+    // they passed the mail and rcpt checks
+}
+```
 
 To determine which file(s) had matching entries, inspect the contents
 of the pass/fail elements in the result object.
@@ -103,24 +105,27 @@ of the pass/fail elements in the result object.
 
 Each check can be enabled or disabled in the [check] section of access.ini:
 
-    [check]
-    any=true    (see below)
-    conn=false
-    helo=false
-    mail=false
-    rcpt=false
+```ini
+[check]
+any=true    (see below)
+conn=false
+helo=false
+mail=false
+rcpt=false
 
-    [rcpt]
-    accept=false  (see below)
+[rcpt]
+accept=false  (see below)
+```
 
 A custom deny message can be configured for each SMTP phase:
 
-    [deny_msg]
-    conn=You are not allowed to connect
-    helo=That HELO is not allowed to connect
-    mail=That sender cannot send mail here
-    rcpt=That recipient is not allowed
-
+```ini
+[deny_msg]
+conn=You are not allowed to connect
+helo=That HELO is not allowed to connect
+mail=That sender cannot send mail here
+rcpt=That recipient is not allowed
+```
 
 ## PRECISE ACLs
 
@@ -129,24 +134,24 @@ A custom deny message can be configured for each SMTP phase:
 The connect ACLs are evaluated against the IP address **and** the rDNS
 hostname (if any) of the remote.
 
-* connect.rdns\_access.whitelist          (pass)
-* connect.rdns\_access.whitelist\_regex   (pass)
-* connect.rdns\_access.blacklist          (block)
-* connect.rdns\_access.blacklist\_regex   (block)
+* connect.rdns_access.whitelist          (pass)
+* connect.rdns_access.whitelist_regex   (pass)
+* connect.rdns_access.blacklist          (block)
+* connect.rdns_access.blacklist_regex   (block)
 
 ### MAIL FROM
 
-* mail\_from.access.whitelist          (pass)
-* mail\_from.access.whitelist\_regex   (pass)
-* mail\_from.access.blacklist          (block)
-* mail\_from.access.blacklist\_regex   (block)
+* mail_from.access.whitelist         (pass)
+* mail_from.access.whitelist_regex   (pass)
+* mail_from.access.blacklist         (block)
+* mail_from.access.blacklist_regex   (block)
 
 ### RCPT TO
 
-* rcpt\_to.access.whitelist           (pass)
-* rcpt\_to.access.whitelist\_regex    (pass)
-* rcpt\_to.access.blacklist           (block)
-* rcpt\_to.access.blacklist\_regex    (block)
+* rcpt_to.access.whitelist          (pass)
+* rcpt_to.access.whitelist_regex    (pass)
+* rcpt_to.access.blacklist          (block)
+* rcpt_to.access.blacklist_regex    (block)
 
 
 ## NOTES
@@ -160,7 +165,7 @@ matches are 3x times as slow. When the matches are moved to the end of the
 30 member list, the regex searches are over 100x slower than indexOf.
 
 Based on this observation, reducing the domain name and doing an indexOf
-search of an (even much longer) blacklist is *much* faster than adding lists
+search of an (even much longer) blacklist is _much_ faster than adding lists
 of .\*domain.com entries to the \*\_regex files.
 
 ### rcpt accept mode
@@ -189,10 +194,10 @@ The portion of a domain name that is operated by a registry. These are often syn
     com
     co.uk
 
-The Organizational Domain is the next level higher than the Public Suffix. So if a hostname is *mail.example.com*, and *com* is the Public Suffix, the OD is *example.com*. If the hostname is *www.bbc.co.uk*, the PS is *co.uk* and the OD is *bbc.co.uk*.
-
+The Organizational Domain is the next level higher than the Public Suffix. So if a hostname is _mail.example.com_, and _com_ is the Public Suffix, the OD is _example.com_. If the hostname is *www.bbc.co.uk*, the PS is _co.uk_ and the OD is _bbc.co.uk_.
 
 <!-- leave these buried at the bottom of the document -->
+
 [ci-img]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
