@@ -1,12 +1,22 @@
 {
   "name": "haraka-plugin-access",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Haraka plugin for ACLs for email connections",
   "main": "index.js",
+  "files": [
+    "CHANGELOG",
+    "CONTRIBUTORS",
+    "config"
+  ],
   "scripts": {
-    "lint": "npx eslint *.js test",
-    "lintfix": "npx eslint --fix *.js test",
-    "test": "npx mocha"
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "lint": "npx eslint@^8 *.js test",
+    "lint:fix": "npx eslint@^8 *.js test --fix",
+    "prettier": "npx prettier . --check",
+    "prettier:fix": "npx prettier . --write --log-level=warn",
+    "test": "npx mocha@^10",
+    "versions": "npx @msimerson/dependency-version-checker check",
+    "versions:fix": "npx @msimerson/dependency-version-checker update && npx prettier package.json --write --log-level=warn"
   },
   "repository": {
     "type": "git",
@@ -24,15 +34,13 @@
   },
   "homepage": "https://github.com/haraka/haraka-plugin-access#readme",
   "devDependencies": {
-    "eslint": ">=8",
-    "eslint-plugin-haraka": "*",
-    "haraka-test-fixtures": "*",
-    "mocha": ">=9"
+    "@haraka/eslint-config": "^1.1.3",
+    "haraka-test-fixtures": "^1.3.5"
   },
   "dependencies": {
-    "address-rfc2822": "*",
-    "haraka-net-utils": "*",
-    "haraka-tld": "*",
-    "haraka-utils": "*"
+    "address-rfc2822": "^2.2.1",
+    "haraka-net-utils": "^1.5.4",
+    "haraka-tld": "^1.2.1",
+    "haraka-utils": "^1.1.2"
   }
 }
