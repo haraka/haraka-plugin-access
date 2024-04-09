@@ -5,6 +5,7 @@
   "main": "index.js",
   "files": [
     "CHANGELOG",
+    "CONTRIBUTORS",
     "config"
   ],
   "scripts": {
