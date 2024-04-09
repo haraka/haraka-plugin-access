@@ -3,11 +3,13 @@
 
 ### [1.1.6] - 2024-04-09
 
+- dep: update all versions and pin to latest
 - dep: eslint-plugin-haraka -> @haraka/eslint-config
 - lint: remove duplicate / stale rules from .eslintrc
 - chore: populate [files] in package.json.
 - chore: remove `const plugin = this` pattern (deprecated)
 - chore: remove unused in_file and in_re_file
+- test: remove `done` from sync tests
 
 ### [1.1.5] - 2022-06-06
 
