@@ -1,5 +1,8 @@
 ### Unreleased
 
+- 
+- chore: remove `const plugin = this` pattern (deprecated)
+- chore: remove unused in_file and in_re_file
 
 ### [1.1.5] - 2022-06-06
 

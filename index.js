@@ -1,49 +1,48 @@
 // access plugin
+
 const tlds      = require('haraka-tld');
 const haddr     = require('address-rfc2822');
 const net_utils = require('haraka-net-utils');
 const utils     = require('haraka-utils');
 
 exports.register = function () {
-    const plugin = this;
 
-    plugin.init_config();      // init plugin.cfg
-    plugin.init_lists();
-    plugin.load_access_ini();  // update with *.ini settings
+    this.init_config();      // init this.cfg
+    this.init_lists();
+    this.load_access_ini();  // update with *.ini settings
 
     let p;
-    for (p in plugin.cfg.white)    { plugin.load_file('white', p); }
-    for (p in plugin.cfg.black)    { plugin.load_file('black', p); }
-    for (p in plugin.cfg.re.white) { plugin.load_re_file('white', p); }
-    for (p in plugin.cfg.re.black) { plugin.load_re_file('black', p); }
+    for (p in this.cfg.white)    { this.load_file('white', p); }
+    for (p in this.cfg.black)    { this.load_file('black', p); }
+    for (p in this.cfg.re.white) { this.load_re_file('white', p); }
+    for (p in this.cfg.re.black) { this.load_re_file('black', p); }
 
-    if (plugin.cfg.check.conn) {
-        plugin.register_hook('connect_init', 'rdns_access');
+    if (this.cfg.check.conn) {
+        this.register_hook('connect', 'rdns_access');
     }
-    if (plugin.cfg.check.helo) {
-        plugin.register_hook('helo',    'helo_access');
-        plugin.register_hook('ehlo',    'helo_access');
+    if (this.cfg.check.helo) {
+        this.register_hook('helo',    'helo_access');
+        this.register_hook('ehlo',    'helo_access');
     }
-    if (plugin.cfg.check.mail) {
-        plugin.register_hook('mail', 'mail_from_access');
+    if (this.cfg.check.mail) {
+        this.register_hook('mail', 'mail_from_access');
     }
-    if (plugin.cfg.check.rcpt) {
-        plugin.register_hook('rcpt', 'rcpt_to_access');
+    if (this.cfg.check.rcpt) {
+        this.register_hook('rcpt', 'rcpt_to_access');
     }
 
-    if (plugin.cfg.check.any) {
-        plugin.load_domain_file('domain', 'any');
-        ['connect','helo','ehlo','mail','rcpt'].forEach(function (hook) {
-            plugin.register_hook(hook, 'any');
-        });
-        plugin.register_hook('data_post', 'data_any');
+    if (this.cfg.check.any) {
+        this.load_domain_file('domain', 'any');
+        for (const hook in ['connect','helo','ehlo','mail','rcpt']) {
+            this.register_hook(hook, 'any');
+        }
+        this.register_hook('data_post', 'data_any');
     }
 }
 
 exports.init_config = function () {
-    const plugin = this;
 
-    plugin.cfg = {
+    this.cfg = {
         deny_msg: {
             conn: 'You are not allowed to connect',
             helo: 'That HELO is not allowed to connect',
@@ -80,8 +79,7 @@ exports.init_config = function () {
 }
 
 exports.load_access_ini = function () {
-    const plugin = this;
-    const cfg = plugin.config.get('access.ini', {
+    const cfg = this.config.get('access.ini', {
         booleans: [
             '+check.any',
             '+check.conn',
@@ -90,45 +88,44 @@ exports.load_access_ini = function () {
             '+check.rcpt',
             '-rcpt.accept',
         ],
-    }, function () {
-        plugin.load_access_ini();
-    });
+    }, () => {
+        this.load_access_ini();
+    })
 
-    plugin.cfg.check = cfg.check;
+    this.cfg.check = cfg.check;
     if (cfg.deny_msg) {
         let p;
-        for (p in plugin.cfg.deny_msg) {
+        for (p in this.cfg.deny_msg) {
             if (cfg.deny_msg[p]) {
-                plugin.cfg.deny_msg[p] = cfg.deny_msg[p];
+                this.cfg.deny_msg[p] = cfg.deny_msg[p];
             }
         }
     }
 
-    plugin.cfg.rcpt = cfg.rcpt;
+    this.cfg.rcpt = cfg.rcpt;
 
     // backwards compatibility
-    const mf_cfg = plugin.config.get('mail_from.access.ini');
+    const mf_cfg = this.config.get('mail_from.access.ini');
     if (mf_cfg && mf_cfg.general && mf_cfg.general.deny_msg) {
-        plugin.cfg.deny_msg.mail = mf_cfg.general.deny_msg;
+        this.cfg.deny_msg.mail = mf_cfg.general.deny_msg;
     }
-    const rcpt_cfg = plugin.config.get('rcpt_to.access.ini');
+    const rcpt_cfg = this.config.get('rcpt_to.access.ini');
     if (rcpt_cfg && rcpt_cfg.general && rcpt_cfg.general.deny_msg) {
-        plugin.cfg.deny_msg.rcpt = rcpt_cfg.general.deny_msg;
+        this.cfg.deny_msg.rcpt = rcpt_cfg.general.deny_msg;
     }
-    const rdns_cfg = plugin.config.get('connect.rdns_access.ini');
+    const rdns_cfg = this.config.get('connect.rdns_access.ini');
     if (rdns_cfg && rdns_cfg.general && rdns_cfg.general.deny_msg) {
-        plugin.cfg.deny_msg.conn = rdns_cfg.general.deny_msg;
+        this.cfg.deny_msg.conn = rdns_cfg.general.deny_msg;
     }
 }
 
 exports.init_lists = function () {
-    const plugin = this;
-    plugin.list = {
+    this.list = {
         black: { conn: {}, helo: {}, mail: {}, rcpt: {} },
         white: { conn: {}, helo: {}, mail: {}, rcpt: {} },
         domain: { any: {} },
     };
-    plugin.list_re = {
+    this.list_re = {
         black: {},
         white: {},
     };
@@ -154,81 +151,77 @@ exports.get_domain = function (hook, connection, params) {
 }
 
 exports.any_whitelist = function (connection, hook, params, domain, org_domain) {
-    const plugin = this;
 
     if (hook === 'mail' || hook === 'rcpt') {
         const email = params[0].address();
-        if (email && plugin.in_list('domain', 'any', `!${email}`)) return true;
+        if (email && this.in_list('domain', 'any', `!${email}`)) return true;
     }
 
-    if (plugin.in_list('domain', 'any', `!${org_domain}`)) return true;
-    if (plugin.in_list('domain', 'any', `!${domain}`)) return true;
+    if (this.in_list('domain', 'any', `!${org_domain}`)) return true;
+    if (this.in_list('domain', 'any', `!${domain}`)) return true;
 
     return false;
 }
 
 exports.any = function (next, connection, params) {
-    const plugin = this;
-    if (!plugin.cfg.check.any) return next();
+    if (!this.cfg.check.any) return next();
 
     const hook = connection.hook;
     if (!hook) {
-        connection.logerror(plugin, "hook detection failed");
+        connection.logerror(this, "hook detection failed");
         return next();
     }
 
     // step 1: get a domain name from whatever info is available
-    const domain = plugin.get_domain(hook, connection, params);
+    const domain = this.get_domain(hook, connection, params);
     if (!domain) {
-        connection.logdebug(plugin, `domain detect failed on hook: ${hook}`);
+        connection.logdebug(this, `domain detect failed on hook: ${hook}`);
         return next();
     }
     if (!/\./.test(domain)) {
-        connection.results.add(plugin, {fail: `invalid domain: ${domain}`, emit: true});
+        connection.results.add(this, {fail: `invalid domain: ${domain}`, emit: true});
         return next();
     }
 
     const org_domain = tlds.get_organizational_domain(domain);
     if (!org_domain) {
-        connection.loginfo(plugin, `no org domain from ${domain}`);
+        connection.loginfo(this, `no org domain from ${domain}`);
         return next();
     }
 
-    const file = plugin.cfg.domain.any;
+    const file = this.cfg.domain.any;
 
     // step 2: check for whitelist
-    if (plugin.any_whitelist(connection, hook, params, domain, org_domain)) {
+    if (this.any_whitelist(connection, hook, params, domain, org_domain)) {
         const whiteResults = {pass: `${hook}:${file}`, whitelist: true, emit: true}
-        connection.results.add(plugin, whiteResults);
+        connection.results.add(this, whiteResults);
         return next();
     }
 
     // step 3: check for blacklist
-    if (plugin.in_list('domain', 'any', org_domain)) {
-        connection.results.add(plugin, {fail: `${file}(${org_domain})`, blacklist: true, emit: true});
+    if (this.in_list('domain', 'any', org_domain)) {
+        connection.results.add(this, {fail: `${file}(${org_domain})`, blacklist: true, emit: true});
         return next(DENY, "You are not welcome here.");
     }
 
     const umsg = hook ? `${hook}:any` : 'any';
-    connection.results.add(plugin, {msg: `unlisted(${umsg})` });
-    return next();
+    connection.results.add(this, {msg: `unlisted(${umsg})` });
+    next();
 }
 
 exports.rdns_store_results = function (connection, color, file) {
-    const plugin = this;
 
     switch (color) {
         case 'white':
-            connection.results.add(plugin, { whitelist: true, pass: file, emit: true })
+            connection.results.add(this, { whitelist: true, pass: file, emit: true })
             break;
         case 'black':
-            connection.results.add(plugin, { fail: file, emit: true })
+            connection.results.add(this, { fail: file, emit: true })
             break;
     }
 }
 
 exports.rdns_is_listed = function (connection, color) {
-    const plugin = this;
 
     const addrs = [ connection.remote.ip, connection.remote.host ];
 
@@ -236,18 +229,18 @@ exports.rdns_is_listed = function (connection, color) {
         if (!addr) continue;  // empty rDNS host
         if (/[\w]/.test(addr)) addr = addr.toLowerCase();
 
-        let file = plugin.cfg[color].conn;
-        connection.logdebug(plugin, `checking ${addr} against ${file}`);
+        let file = this.cfg[color].conn;
+        connection.logdebug(this, `checking ${addr} against ${file}`);
 
-        if (plugin.in_list(color, 'conn', addr)) {
-            plugin.rdns_store_results(connection, color, file)
+        if (this.in_list(color, 'conn', addr)) {
+            this.rdns_store_results(connection, color, file)
             return true;
         }
 
-        file = plugin.cfg.re[color].conn;
-        connection.logdebug(plugin, `checking ${addr} against ${file}`);
-        if (plugin.in_re_list(color, 'conn', addr)) {
-            plugin.rdns_store_results(connection, color, file)
+        file = this.cfg.re[color].conn;
+        connection.logdebug(this, `checking ${addr} against ${file}`);
+        if (this.in_re_list(color, 'conn', addr)) {
+            this.rdns_store_results(connection, color, file)
             return true;
         }
     }
@@ -256,82 +249,79 @@ exports.rdns_is_listed = function (connection, color) {
 }
 
 exports.rdns_access = function (next, connection) {
-    const plugin = this;
-    if (!plugin.cfg.check.conn) return next();
+    if (!this.cfg.check.conn) return next();
 
-    if (plugin.rdns_is_listed(connection, 'white')) return next();
+    if (this.rdns_is_listed(connection, 'white')) return next();
 
-    const deny_msg = `${connection.remote.host} [${connection.remote.ip}] ${plugin.cfg.deny_msg.conn}`
-    if (plugin.rdns_is_listed(connection, 'black')) return next(DENYDISCONNECT, deny_msg);
+    const deny_msg = `${connection.remote.host} [${connection.remote.ip}] ${this.cfg.deny_msg.conn}`
+    if (this.rdns_is_listed(connection, 'black')) return next(DENYDISCONNECT, deny_msg);
 
-    connection.results.add(plugin, { msg: 'unlisted(conn)' });
+    connection.results.add(this, { msg: 'unlisted(conn)' });
     next();
 }
 
 exports.helo_access = function (next, connection, helo) {
-    const plugin = this;
-    if (!plugin.cfg.check.helo) { return next(); }
+    if (!this.cfg.check.helo) return next();
 
-    const file = plugin.cfg.re.black.helo;
-    if (plugin.in_re_list('black', 'helo', helo)) {
-        connection.results.add(plugin, {fail: file, emit: true});
-        return next(DENY, `${helo} ${plugin.cfg.deny_msg.helo}`);
+    const file = this.cfg.re.black.helo;
+    if (this.in_re_list('black', 'helo', helo)) {
+        connection.results.add(this, {fail: file, emit: true});
+        return next(DENY, `${helo} ${this.cfg.deny_msg.helo}`);
     }
 
-    connection.results.add(plugin, {msg: 'unlisted(helo)' });
-    return next();
+    connection.results.add(this, {msg: 'unlisted(helo)' });
+    next();
 }
 
 exports.mail_from_access = function (next, connection, params) {
-    const plugin = this;
-    if (!plugin.cfg.check.mail) { return next(); }
+
+    if (!this.cfg.check.mail) return next();
 
     const mail_from = params[0].address();
     if (!mail_from) {
-        connection.transaction.results.add(plugin, {
+        connection.transaction.results.add(this, {
             skip: 'null sender', emit: true});
         return next();
     }
 
     // address whitelist checks
-    let file = plugin.cfg.white.mail;
-    connection.logdebug(plugin, `checking ${mail_from} against ${file}`);
-    if (plugin.in_list('white', 'mail', mail_from)) {
-        connection.transaction.results.add(plugin, {pass: file, emit: true});
+    let file = this.cfg.white.mail;
+    connection.logdebug(this, `checking ${mail_from} against ${file}`);
+    if (this.in_list('white', 'mail', mail_from)) {
+        connection.transaction.results.add(this, {pass: file, emit: true});
         return next();
     }
 
-    file = plugin.cfg.re.white.mail;
-    connection.logdebug(plugin, `checking ${mail_from} against ${file}`);
-    if (plugin.in_re_list('white', 'mail', mail_from)) {
-        connection.transaction.results.add(plugin, {pass: file, emit: true});
+    file = this.cfg.re.white.mail;
+    connection.logdebug(this, `checking ${mail_from} against ${file}`);
+    if (this.in_re_list('white', 'mail', mail_from)) {
+        connection.transaction.results.add(this, {pass: file, emit: true});
         return next();
     }
 
     // address blacklist checks
-    file = plugin.cfg.black.mail;
-    if (plugin.in_list('black', 'mail', mail_from)) {
-        connection.transaction.results.add(plugin, {fail: file, emit: true});
-        return next(DENY, `${mail_from} ${plugin.cfg.deny_msg.mail}`);
+    file = this.cfg.black.mail;
+    if (this.in_list('black', 'mail', mail_from)) {
+        connection.transaction.results.add(this, {fail: file, emit: true});
+        return next(DENY, `${mail_from} ${this.cfg.deny_msg.mail}`);
     }
 
-    file = plugin.cfg.re.black.mail;
-    connection.logdebug(plugin, `checking ${mail_from} against ${file}`);
-    if (plugin.in_re_list('black', 'mail', mail_from)) {
-        connection.transaction.results.add(plugin, {fail: file, emit: true});
-        return next(DENY, `${mail_from} ${plugin.cfg.deny_msg.mail}`);
+    file = this.cfg.re.black.mail;
+    connection.logdebug(this, `checking ${mail_from} against ${file}`);
+    if (this.in_re_list('black', 'mail', mail_from)) {
+        connection.transaction.results.add(this, {fail: file, emit: true});
+        return next(DENY, `${mail_from} ${this.cfg.deny_msg.mail}`);
     }
 
-    connection.transaction.results.add(plugin, {msg: 'unlisted(mail)' });
-    return next();
+    connection.transaction.results.add(this, {msg: 'unlisted(mail)' });
+    next();
 }
 
 exports.rcpt_to_access = function (next, connection, params) {
-    const plugin = this;
-    if (!plugin.cfg.check.rcpt) { return next(); }
+    if (!this.cfg.check.rcpt) return next();
 
     let pass_status = undefined;
-    if (plugin.cfg.rcpt.accept) {
+    if (this.cfg.rcpt.accept) {
         pass_status = OK;
     }
 
@@ -339,50 +329,49 @@ exports.rcpt_to_access = function (next, connection, params) {
 
     // address whitelist checks
     if (!rcpt_to) {
-        connection.transaction.results.add(plugin, {
+        connection.transaction.results.add(this, {
             skip: 'null rcpt', emit: true});
         return next();
     }
 
-    let file = plugin.cfg.white.rcpt;
-    if (plugin.in_list('white', 'rcpt', rcpt_to)) {
-        connection.transaction.results.add(plugin, {pass: file, emit: true});
+    let file = this.cfg.white.rcpt;
+    if (this.in_list('white', 'rcpt', rcpt_to)) {
+        connection.transaction.results.add(this, {pass: file, emit: true});
         return next(pass_status);
     }
 
-    file = plugin.cfg.re.white.rcpt;
-    if (plugin.in_re_list('white', 'rcpt', rcpt_to)) {
-        connection.transaction.results.add(plugin, {pass: file, emit: true});
+    file = this.cfg.re.white.rcpt;
+    if (this.in_re_list('white', 'rcpt', rcpt_to)) {
+        connection.transaction.results.add(this, {pass: file, emit: true});
         return next(pass_status);
     }
 
     // address blacklist checks
-    file = plugin.cfg.black.rcpt;
-    if (plugin.in_list('black', 'rcpt', rcpt_to)) {
-        connection.transaction.results.add(plugin, {fail: file, emit: true});
-        return next(DENY, `${rcpt_to} ${plugin.cfg.deny_msg.rcpt}`);
+    file = this.cfg.black.rcpt;
+    if (this.in_list('black', 'rcpt', rcpt_to)) {
+        connection.transaction.results.add(this, {fail: file, emit: true});
+        return next(DENY, `${rcpt_to} ${this.cfg.deny_msg.rcpt}`);
     }
 
-    file = plugin.cfg.re.black.rcpt;
-    if (plugin.in_re_list('black', 'rcpt', rcpt_to)) {
-        connection.transaction.results.add(plugin, {fail: file, emit: true});
-        return next(DENY, `${rcpt_to} ${plugin.cfg.deny_msg.rcpt}`);
+    file = this.cfg.re.black.rcpt;
+    if (this.in_re_list('black', 'rcpt', rcpt_to)) {
+        connection.transaction.results.add(this, {fail: file, emit: true});
+        return next(DENY, `${rcpt_to} ${this.cfg.deny_msg.rcpt}`);
     }
 
-    connection.transaction.results.add(plugin, {msg: 'unlisted(rcpt)' });
-    return next();
+    connection.transaction.results.add(this, {msg: 'unlisted(rcpt)' });
+    next();
 }
 
 exports.data_any = function (next, connection) {
-    const plugin = this;
-    if (!plugin.cfg.check.data && !plugin.cfg.check.any) {
-        connection.transaction.results.add(plugin, {skip: 'data(disabled)'});
+    if (!this.cfg.check.data && !this.cfg.check.any) {
+        connection.transaction.results.add(this, {skip: 'data(disabled)'});
         return next();
     }
 
     const hdr_from = connection.transaction.header.get_decoded('From');
     if (!hdr_from) {
-        connection.transaction.results.add(plugin, {fail: 'data(missing_from)'});
+        connection.transaction.results.add(this, {fail: 'data(missing_from)'});
         return next();
     }
 
@@ -391,162 +380,138 @@ exports.data_any = function (next, connection) {
         hdr_addr = haddr.parse(hdr_from)[0];
     }
     catch (e) {
-        connection.transaction.results.add(plugin, {fail: `data(unparsable_from:${hdr_from})`});
+        connection.transaction.results.add(this, {fail: `data(unparsable_from:${hdr_from})`});
         return next();
     }
 
     if (!hdr_addr) {
-        connection.transaction.results.add(plugin, {fail: `data(unparsable_from:${hdr_from})`});
+        connection.transaction.results.add(this, {fail: `data(unparsable_from:${hdr_from})`});
         return next();
     }
 
     const hdr_dom = tlds.get_organizational_domain(hdr_addr.host());
     if (!hdr_dom) {
-        connection.transaction.results.add(plugin, {fail: `data(no_od_from:${hdr_addr})`});
+        connection.transaction.results.add(this, {fail: `data(no_od_from:${hdr_addr})`});
         return next();
     }
 
-    const file = plugin.cfg.domain.any;
-    if (plugin.in_list('domain', 'any', `!${hdr_dom}`)) {
-        connection.results.add(plugin, {pass: file, whitelist: true, emit: true});
+    const file = this.cfg.domain.any;
+    if (this.in_list('domain', 'any', `!${hdr_dom}`)) {
+        connection.results.add(this, {pass: file, whitelist: true, emit: true});
         return next();
     }
 
-    if (plugin.in_list('domain', 'any', hdr_dom)) {
-        connection.results.add(plugin, {fail: `${file}(${hdr_dom})`, blacklist: true, emit: true});
+    if (this.in_list('domain', 'any', hdr_dom)) {
+        connection.results.add(this, {fail: `${file}(${hdr_dom})`, blacklist: true, emit: true});
         return next(DENY, "Email from that domain is not accepted here.");
     }
 
-    connection.results.add(plugin, {msg: 'unlisted(any)' });
-    return next();
+    connection.results.add(this, {msg: 'unlisted(any)' });
+    next();
 }
 
 exports.in_list = function (type, phase, address) {
-    const plugin = this;
-    if (plugin.list[type][phase] === undefined) {
+    if (this.list[type][phase] === undefined) {
         console.log(`phase not defined: ${phase}`);
         return false;
     }
     if (!address) return false;
-    if (plugin.list[type][phase][address.toLowerCase()]) return true;
+    if (this.list[type][phase][address.toLowerCase()]) return true;
     return false;
 }
 
 exports.in_re_list = function (type, phase, address) {
-    const plugin = this;
-    if (!plugin.list_re[type][phase]) { return false; }
-    if (!plugin.cfg.re[type][phase].source) {
-        plugin.logdebug(plugin, `empty file: ${plugin.cfg.re[type][phase]}`);
+    if (!this.list_re[type][phase]) { return false; }
+    if (!this.cfg.re[type][phase].source) {
+        this.logdebug(this, `empty file: ${this.cfg.re[type][phase]}`);
     }
     else {
-        plugin.logdebug(plugin, `checking ${address} against ` +
-            `${plugin.cfg.re[type][phase].source}`);
+        this.logdebug(this, `checking ${address} against ` +
+            `${this.cfg.re[type][phase].source}`);
     }
-    return plugin.list_re[type][phase].test(address);
-}
-
-exports.in_file = function (file_name, address, connection) {
-    const plugin = this;
-    // using indexOf on an array here is about 20x slower than testing against a key in an object
-    connection.logdebug(plugin, `checking ${address} against ${file_name}`);
-    return (plugin.config.get(file_name, 'list').indexOf(address) === -1) ? false : true;
-}
-
-exports.in_re_file = function (file_name, address) {
-    // Since the helo.checks plugin uses this method, I tested to see how
-    // badly if affected performance. It took 8.5x longer to run than
-    // in_re_list.
-    this.logdebug(this, `checking ${address} against ${file_name}`);
-    const re_list = utils.valid_regexes(
-        this.config.get(file_name, 'list'), file_name);
-    for (let i=0; i < re_list.length; i++) {
-        if (new RegExp('^' + re_list[i] + '$', 'i').test(address)) return true;
-    }
-    return false;
+    return this.list_re[type][phase].test(address);
 }
 
 exports.load_file = function (type, phase) {
-    const plugin = this;
-    if (!plugin.cfg.check[phase]) {
-        plugin.logdebug(plugin, `skipping ${plugin.cfg[type][phase]}`);
+    if (!this.cfg.check[phase]) {
+        this.logdebug(this, `skipping ${this.cfg[type][phase]}`);
         return;
     }
 
-    const file_name = plugin.cfg[type][phase];
+    const file_name = this.cfg[type][phase];
 
     // load config with a self-referential callback
-    const list = plugin.config.get(file_name, 'list', () => {
-        plugin.load_file(type, phase);
+    const list = this.config.get(file_name, 'list', () => {
+        this.load_file(type, phase);
     });
 
     // init the list store, type is white or black
-    if (!plugin.list)       { plugin.list = { type: {} }; }
-    if (!plugin.list[type]) { plugin.list[type] = {}; }
+    if (!this.list)       this.list = { type: {} };
+    if (!this.list[type]) this.list[type] = {};
 
     // toLower when loading spends a fraction of a second at load time
     // to save millions of seconds during run time.
     const listAsHash = {};  // store as hash for speedy lookups
-    for (let i=0; i<list.length; i++) {
-        listAsHash[list[i].toLowerCase()] = true;
+    for (const entry of list) {
+        listAsHash[entry.toLowerCase()] = true;
     }
-    plugin.list[type][phase] = listAsHash;
+    this.list[type][phase] = listAsHash;
 }
 
 exports.load_re_file = function (type, phase) {
-    const plugin = this;
-    if (!plugin.cfg.check[phase]) {
-        plugin.logdebug(plugin, `skipping ${plugin.cfg.re[type][phase]}`);
+    if (!this.cfg.check[phase]) {
+        this.logdebug(this, `skipping ${this.cfg.re[type][phase]}`);
         return;
     }
 
+    const plugin = this;
     const regex_list = utils.valid_regexes(
         plugin.config.get(
             plugin.cfg.re[type][phase],
             'list',
-            function () {
+            () => {
                 plugin.load_re_file(type, phase);
             })
     );
 
     // initialize the list store
-    if (!plugin.list_re)       plugin.list_re = { type: {} };
-    if (!plugin.list_re[type]) plugin.list_re[type] = {};
+    if (!this.list_re)       this.list_re = { type: {} };
+    if (!this.list_re[type]) this.list_re[type] = {};
 
     // compile the regexes at the designated location
-    plugin.list_re[type][phase] =
-        new RegExp(`^(${regex_list.join('|')})$`, 'i');
+    this.list_re[type][phase] = new RegExp(`^(${regex_list.join('|')})$`, 'i');
 }
 
 exports.load_domain_file = function (type, phase) {
-    const plugin = this;
-    if (!plugin.cfg.check[phase]) {
-        plugin.logdebug(plugin, `skipping ${plugin.cfg[type][phase]}`);
+    if (!this.cfg.check[phase]) {
+        this.logdebug(this, `skipping ${this.cfg[type][phase]}`);
         return;
     }
 
-    const file_name = plugin.cfg[type][phase];
-    const list = plugin.config.get(file_name, 'list', function () {
-        plugin.load_domain_file(type, phase);
+    const file_name = this.cfg[type][phase];
+    const list = this.config.get(file_name, 'list', () => {
+        this.load_domain_file(type, phase);
     });
 
     // init the list store, if needed
-    if (!plugin.list)       plugin.list = { type: {} };
-    if (!plugin.list[type]) plugin.list[type] = {};
+    if (!this.list)       this.list = { type: {} };
+    if (!this.list[type]) this.list[type] = {};
 
-    // convert list items to LC at load (much faster than at run time)
-    for (let i=0; i < list.length; i++) {
-        if (list[i][0] === '!') {  // whitelist entry
-            plugin.list[type][phase][list[i].toLowerCase()] = true;
+    // lowercase list items at load (much faster than at run time)
+    for (const entry of list) {
+
+        if (entry[0] === '!') {  // whitelist entry
+            this.list[type][phase][entry.toLowerCase()] = true;
             continue;
         }
 
-        if (/@/.test(list[i][0])) {  // email address
-            plugin.list[type][phase][list[i].toLowerCase()] = true;
+        if (/@/.test(entry[0])) {  // email address
+            this.list[type][phase][entry.toLowerCase()] = true;
             continue;
         }
 
-        const d = tlds.get_organizational_domain(list[i]);
+        const d = tlds.get_organizational_domain(entry);
         if (!d) continue;
-        plugin.list[type][phase][d.toLowerCase()] = true;
+        this.list[type][phase][d.toLowerCase()] = true;
     }
 }

@@ -67,7 +67,7 @@ When upgrading from the rdns\_access, mail\_from.access, and rcpt\_to.access
 plugins, be sure to remove the plugins from config/plugins, upon pain of
 wasted CPU cycles.
 
-There is no need to modify your black/white lists in any way.
+There is no need to modify your black/white lists.
 
 If you just want the new plugin to work exactly like the old trio it replaces,
 add this section to _config/access.ini_:
@@ -169,7 +169,7 @@ By default this plugin only rejects recipients on the blacklists, and ignores th
 
 ### Organizational Domain
 
-The OD is a term that describes the highest level portion of domain name that is under the control of a private organization. I'll explain, but first, lets clarify a few terms:
+The OD is a term that describes the highest level portion of domain name that is under the control of a private organization. Let's clarify a few terms:
 
 #### TLD
 

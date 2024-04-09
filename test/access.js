@@ -157,7 +157,7 @@ describe('load_file', function () {
     })
 
     it('case normalizing', function (done) {
-        console.log(this.plugin.config.root_path);
+        // console.log(this.plugin.config.root_path);
         this.plugin.load_file('white', 'rcpt');
         assert.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com'));
         assert.equal(true, this.plugin.in_list('white', 'rcpt', 'admin2@example.com')); // was ADMIN2@EXAMPLE.com
@@ -181,43 +181,6 @@ describe('load_re_file', function () {
         assert.equal(true,  this.plugin.in_re_list('white', 'mail', 'list@harakamail.com'));
         assert.equal(false, this.plugin.in_re_list('white', 'mail', 'list@harail.com'));
         assert.equal(false, this.plugin.in_re_list('white', 'mail', 'LIST@harail.com'));
-        done();
-    })
-})
-
-describe('in_file', function () {
-    beforeEach(function (done) {
-        this.plugin = new fixtures.plugin('access');
-        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
-        this.plugin.register();
-        this.connection = fixtures.connection.createConnection();
-        this.connection.init_transaction();
-        done()
-    })
-
-    it('in_file', function (done) {
-        const file = 'mail_from.access.whitelist';
-        assert.equal(true,  this.plugin.in_file(file, 'haraka@harakamail.com', this.connection));
-        assert.equal(false, this.plugin.in_file(file, 'matt@harakamail.com', this.connection));
-        done();
-    })
-})
-
-describe('in_re_file', function () {
-    beforeEach(function (done) {
-        this.plugin = new fixtures.plugin('access');
-        this.plugin.config = this.plugin.config.module_config(path.resolve(__dirname));
-        this.plugin.register();
-        this.connection = fixtures.connection.createConnection();
-        this.connection.init_transaction();
-        done()
-    })
-
-    it('in_re_file', function (done) {
-        const file = 'mail_from.access.whitelist_regex';
-        // console.log(this.plugin.cfg);
-        assert.equal(true,  this.plugin.in_re_file(file, 'list@harakamail.com'));
-        assert.equal(false, this.plugin.in_re_file(file, 'matt@harkatamale.com'));
         done();
     })
 })
