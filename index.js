@@ -10,18 +10,13 @@ exports.register = function () {
   this.init_lists()
   this.load_access_ini() // update with *.ini settings
 
-  let p
-  for (p in this.cfg.white) {
-    this.load_file('white', p)
-  }
-  for (p in this.cfg.black) {
-    this.load_file('black', p)
-  }
-  for (p in this.cfg.re.white) {
-    this.load_re_file('white', p)
-  }
-  for (p in this.cfg.re.black) {
-    this.load_re_file('black', p)
+  for (const c of ['black', 'white']) {
+    for (const p in this.cfg[c]) {
+      this.load_file(c, p)
+    }
+    for (const p in this.cfg.re[c]) {
+      this.load_re_file(c, p)
+    }
   }
 
   if (this.cfg.check.conn) {
