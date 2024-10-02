@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.1.7] - 2024-10-01
 
+- index: updated this.logdebug syntax
 - deps(all): bumped to latest
 - run rdns_access on connect_init hook #32
 
