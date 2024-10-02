@@ -1,4 +1,14 @@
+# Changelog
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
 ### Unreleased
+
+### [1.1.7] - 2024-10-01
+
+- index: updated this.logdebug syntax
+- deps(all): bumped to latest
+- run rdns_access on connect_init hook #32
 
 ### [1.1.6] - 2024-04-09
 
@@ -42,3 +52,5 @@
 
 [1.1.5]: https://github.com/haraka/haraka-plugin-access/releases/tag/1.1.5
 [1.1.6]: https://github.com/haraka/haraka-plugin-access/releases/tag/1.1.6
+[1.1.7]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.7
+[1.1.4]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.4
