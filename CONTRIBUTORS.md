@@ -1,9 +1,8 @@
-
 # Contributors
 
 This handcrafted artisinal software is brought to you by:
 
-| <img height="80" src="https://avatars.githubusercontent.com/u/261635?v=4"><br><a href="https://github.com/msimerson">msimerson</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=msimerson">37</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/2158203?v=4"><br><a href="https://github.com/luto">luto</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=luto">8</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/1674289?v=4"><br><a href="https://github.com/Dexus">Dexus</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=Dexus">2</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/83369329?v=4"><br><a href="https://github.com/polarismail">polarismail</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=polarismail">1</a>)|
-| :---: | :---: | :---: | :---: |
+| <img height="80" src="https://avatars.githubusercontent.com/u/261635?v=4"><br><a href="https://github.com/msimerson">msimerson</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=msimerson">38</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/2158203?v=4"><br><a href="https://github.com/luto">luto</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=luto">8</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/1674289?v=4"><br><a href="https://github.com/Dexus">Dexus</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=Dexus">2</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/15035337?v=4"><br><a href="https://github.com/gtech99">gtech99</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=gtech99">1</a>)| <img height="80" src="https://avatars.githubusercontent.com/u/83369329?v=4"><br><a href="https://github.com/polarismail">polarismail</a> (<a href="https://github.com/haraka/haraka-plugin-access/commits?author=polarismail">1</a>)|
+| :---: | :---: | :---: | :---: | :---: |
 
-<sub>created and maintained with [.release](https://github.com/msimerson/.release)</sub>
+<sub>this file is maintained by [.release](https://github.com/msimerson/.release)</sub>
