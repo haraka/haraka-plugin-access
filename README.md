@@ -85,14 +85,14 @@ To check access results from other plugins, use the standard _results_
 methods.
 
 ```js
-const ar = connection.results.get('access');
+const ar = connection.results.get('access')
 if (ar.pass.length > 2) {
-    // they passed the connection and helo checks
+  // they passed the connection and helo checks
 }
 
-const ar = connection.transaction.results.get('access');
+const ar = connection.transaction.results.get('access')
 if (ar.pass.length > 2) {
-    // they passed the mail and rcpt checks
+  // they passed the mail and rcpt checks
 }
 ```
 
@@ -134,25 +134,24 @@ rcpt=That recipient is not allowed
 The connect ACLs are evaluated against the IP address **and** the rDNS
 hostname (if any) of the remote.
 
-* connect.rdns_access.whitelist          (pass)
-* connect.rdns_access.whitelist_regex   (pass)
-* connect.rdns_access.blacklist          (block)
-* connect.rdns_access.blacklist_regex   (block)
+- connect.rdns_access.whitelist (pass)
+- connect.rdns_access.whitelist_regex (pass)
+- connect.rdns_access.blacklist (block)
+- connect.rdns_access.blacklist_regex (block)
 
 ### MAIL FROM
 
-* mail_from.access.whitelist         (pass)
-* mail_from.access.whitelist_regex   (pass)
-* mail_from.access.blacklist         (block)
-* mail_from.access.blacklist_regex   (block)
+- mail_from.access.whitelist (pass)
+- mail_from.access.whitelist_regex (pass)
+- mail_from.access.blacklist (block)
+- mail_from.access.blacklist_regex (block)
 
 ### RCPT TO
 
-* rcpt_to.access.whitelist          (pass)
-* rcpt_to.access.whitelist_regex    (pass)
-* rcpt_to.access.blacklist          (block)
-* rcpt_to.access.blacklist_regex    (block)
-
+- rcpt_to.access.whitelist (pass)
+- rcpt_to.access.whitelist_regex (pass)
+- rcpt_to.access.blacklist (block)
+- rcpt_to.access.blacklist_regex (block)
 
 ## NOTES
 
