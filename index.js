@@ -456,10 +456,9 @@ exports.in_re_list = function (type, phase, address) {
     return false
   }
   if (!this.cfg.re[type][phase].source) {
-    this.logdebug(this, `empty file: ${this.cfg.re[type][phase]}`)
+    this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
   } else {
     this.logdebug(
-      this,
       `checking ${address} against ` + `${this.cfg.re[type][phase].source}`,
     )
   }
@@ -468,7 +467,7 @@ exports.in_re_list = function (type, phase, address) {
 
 exports.load_file = function (type, phase) {
   if (!this.cfg.check[phase]) {
-    this.logdebug(this, `skipping ${this.cfg[type][phase]}`)
+    this.logdebug(`skipping ${this.cfg[type][phase]}`)
     return
   }
 
@@ -494,7 +493,7 @@ exports.load_file = function (type, phase) {
 
 exports.load_re_file = function (type, phase) {
   if (!this.cfg.check[phase]) {
-    this.logdebug(this, `skipping ${this.cfg.re[type][phase]}`)
+    this.logdebug(`skipping ${this.cfg.re[type][phase]}`)
     return
   }
 
@@ -515,7 +514,7 @@ exports.load_re_file = function (type, phase) {
 
 exports.load_domain_file = function (type, phase) {
   if (!this.cfg.check[phase]) {
-    this.logdebug(this, `skipping ${this.cfg[type][phase]}`)
+    this.logdebug(`skipping ${this.cfg[type][phase]}`)
     return
   }
 
