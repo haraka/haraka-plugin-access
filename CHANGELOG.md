@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.1.8] - 2024-11-06
+
+- fix: Run rdns_access on connect hook, #35
+
 ### [1.1.7] - 2024-10-01
 
 - index: updated this.logdebug syntax
@@ -12,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.1.6] - 2024-04-09
 
+- register rdns_access on connect_init #28
 - dep: update all versions and pin to latest
 - dep: eslint-plugin-haraka -> @haraka/eslint-config
 - lint: remove duplicate / stale rules from .eslintrc
@@ -54,3 +59,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.1.6]: https://github.com/haraka/haraka-plugin-access/releases/tag/1.1.6
 [1.1.7]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.7
 [1.1.4]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.4
+[1.1.8]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.8
