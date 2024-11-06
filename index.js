@@ -20,7 +20,7 @@ exports.register = function () {
   }
 
   if (this.cfg.check.conn) {
-    this.register_hook('connect_init', 'rdns_access')
+    this.register_hook('connect', 'rdns_access')
   }
   if (this.cfg.check.helo) {
     this.register_hook('helo', 'helo_access')
