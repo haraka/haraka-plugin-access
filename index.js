@@ -35,7 +35,7 @@ exports.register = function () {
 
   if (this.cfg.check.any) {
     this.load_domain_file('domain', 'any')
-    for (const hook in ['connect', 'helo', 'ehlo', 'mail', 'rcpt']) {
+    for (const hook of ['connect', 'helo', 'ehlo', 'mail', 'rcpt']) {
       this.register_hook(hook, 'any')
     }
     this.register_hook('data_post', 'data_any')
