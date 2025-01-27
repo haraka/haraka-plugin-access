@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.1.10] - 2025-01-26
 
+- code formatting with prettier
 - dep(eslint): upgrade to v9
 
 ### [1.1.9] - 2024-11-18
