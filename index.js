@@ -400,7 +400,7 @@ exports.data_any = function (next, connection) {
   let hdr_addr
   try {
     hdr_addr = haddr.parse(hdr_from)[0]
-  } catch (e) {
+  } catch (ignore) {
     connection.transaction.results.add(this, {
       fail: `data(unparsable_from:${hdr_from})`,
     })
