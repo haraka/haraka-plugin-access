@@ -1,6 +1,6 @@
 {
   "name": "haraka-plugin-access",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "Haraka plugin for ACLs for email connections",
   "main": "index.js",
   "files": [
@@ -13,7 +13,7 @@
     "lint:fix": "npx eslint@^8 *.js test --fix",
     "prettier": "npx prettier . --check",
     "prettier:fix": "npx prettier . --write --log-level=warn",
-    "test": "npx mocha@^10",
+    "test": "npx mocha@^11",
     "versions": "npx dependency-version-checker check",
     "versions:fix": "npx dependency-version-checker update && npx prettier package.json --write --log-level=warn"
   },

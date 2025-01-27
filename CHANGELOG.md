@@ -4,6 +4,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.1.10] - 2025-01-26
+
+#### Added
+
+- 
+
+#### Fixed
+
+- 
+
+#### Changed
+
+- 
+
+
 ### [1.1.9] - 2024-11-18
 
 - Fix hook registration for any access.domains #37
@@ -65,3 +80,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.1.4]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.4
 [1.1.8]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.8
 [1.1.9]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.9
+[1.1.10]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.10
