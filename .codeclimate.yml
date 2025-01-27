@@ -1,16 +1,16 @@
 engines:
   eslint:
     enabled: true
-    channel: "eslint-9"
+    channel: 'eslint-9'
     config:
-      config: "eslint.config.mjs"
+      config: 'eslint.config.mjs'
     checks:
       complexity:
         enabled: false
 
 ratings:
   paths:
-    - "**.js"
+    - '**.js'
 
 checks:
   file-lines:
