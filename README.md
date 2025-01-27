@@ -83,12 +83,12 @@ To check access results from other plugins, use the standard _results_
 methods.
 
 ```js
-const ar = connection.results.get('access')
+const ar = connection.results.get("access");
 if (ar.pass.length > 2) {
   // they passed the connection and helo checks
 }
 
-const ar = connection.transaction.results.get('access')
+const ar = connection.transaction.results.get("access");
 if (ar.pass.length > 2) {
   // they passed the mail and rcpt checks
 }
