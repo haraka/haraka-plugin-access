@@ -6,18 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.1.10] - 2025-01-26
 
-#### Added
-
-- 
-
-#### Fixed
-
-- 
-
-#### Changed
-
-- 
-
+- dep(eslint): upgrade to v9
 
 ### [1.1.9] - 2024-11-18
 
@@ -75,7 +64,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - initial release
 
 [1.1.5]: https://github.com/haraka/haraka-plugin-access/releases/tag/1.1.5
-[1.1.6]: https://github.com/haraka/haraka-plugin-access/releases/tag/1.1.6
+[1.1.6]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.6
 [1.1.7]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.7
 [1.1.4]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.4
 [1.1.8]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.8

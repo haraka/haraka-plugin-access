@@ -1,8 +1,6 @@
 [![CI Tests][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
 
-[![NPM][npm-img]][npm-url]
-
 # haraka-plugin-access - ACLs
 
 This plugin applies Access Control Lists during the connect, helo, mail, and rcpt phases of the SMTP conversation. It has a split personality, supporting two somewhat different modes, **any** -vs- **precise**.
@@ -201,5 +199,3 @@ The Organizational Domain is the next level higher than the Public Suffix. So if
 [ci-url]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
-[npm-img]: https://nodei.co/npm/haraka-plugin-access.png
-[npm-url]: https://www.npmjs.com/package/haraka-plugin-access
