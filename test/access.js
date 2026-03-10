@@ -247,58 +247,66 @@ describe('rdns_access', function () {
     this.connection.init_transaction()
   })
 
-  it('no list', function (done) {
+  it('no list', async function () {
     this.connection.remote.ip = '1.1.1.1'
     this.connection.remote.host = 'host.example.com'
-    this.plugin.rdns_access((rc) => {
-      // console.log(this.connection.results.get('access'));
-      assert.equal(undefined, rc)
-      assert.ok(this.connection.results.get('access').msg.length)
-      done()
-    }, this.connection)
+    await new Promise((resolve) => {
+      this.plugin.rdns_access((rc) => {
+        // console.log(this.connection.results.get('access'));
+        assert.equal(undefined, rc)
+        assert.ok(this.connection.results.get('access').msg.length)
+        resolve()
+      }, this.connection)
+    })
   })
 
-  it('whitelist', function (done) {
+  it('whitelist', async function () {
     this.connection.remote.ip = '1.1.1.1'
     this.connection.remote.host = 'host.example.com'
     this.plugin.list.white.conn['host.example.com'] = true
-    this.plugin.rdns_access((rc) => {
-      assert.equal(undefined, rc)
-      assert.ok(this.connection.results.get('access').pass.length)
-      // assert.ok(this.connection.results.has('access', 'pass', /white/));
-      done()
-    }, this.connection)
+    await new Promise((resolve) => {
+      this.plugin.rdns_access((rc) => {
+        assert.equal(undefined, rc)
+        assert.ok(this.connection.results.get('access').pass.length)
+        // assert.ok(this.connection.results.has('access', 'pass', /white/));
+        resolve()
+      }, this.connection)
+    })
   })
 
-  it('blacklist', function (done) {
+  it('blacklist', async function () {
     this.connection.remote.ip = '1.1.1.1'
     this.connection.remote.host = 'host.example.com'
     this.plugin.list.black.conn['host.example.com'] = true
-    this.plugin.rdns_access((rc, msg) => {
-      assert.equal(DENYDISCONNECT, rc)
-      assert.equal(
-        'host.example.com [1.1.1.1] You are not allowed to connect',
-        msg,
-      )
-      assert.ok(this.connection.results.get('access').fail.length)
-      done()
-    }, this.connection)
+    await new Promise((resolve) => {
+      this.plugin.rdns_access((rc, msg) => {
+        assert.equal(DENYDISCONNECT, rc)
+        assert.equal(
+          'host.example.com [1.1.1.1] You are not allowed to connect',
+          msg,
+        )
+        assert.ok(this.connection.results.get('access').fail.length)
+        resolve()
+      }, this.connection)
+    })
   })
 
-  it('blacklist regex', function (done) {
+  it('blacklist regex', async function () {
     this.connection.remote.ip = '1.1.1.1'
     this.connection.remote.host = 'host.antispam.com'
     const black = ['.*spam.com']
     this.plugin.list_re.black.conn = new RegExp(`^(${black.join('|')})$`, 'i')
-    this.plugin.rdns_access((rc, msg) => {
-      assert.equal(DENYDISCONNECT, rc)
-      assert.equal(
-        'host.antispam.com [1.1.1.1] You are not allowed to connect',
-        msg,
-      )
-      assert.ok(this.connection.results.get('access').fail.length)
-      done()
-    }, this.connection)
+    await new Promise((resolve) => {
+      this.plugin.rdns_access((rc, msg) => {
+        assert.equal(DENYDISCONNECT, rc)
+        assert.equal(
+          'host.antispam.com [1.1.1.1] You are not allowed to connect',
+          msg,
+        )
+        assert.ok(this.connection.results.get('access').fail.length)
+        resolve()
+      }, this.connection)
+    })
   })
 })
 
@@ -312,34 +320,38 @@ describe('helo_access', function () {
     this.connection = fixtures.connection.createConnection()
   })
 
-  it('no list', function (done) {
+  it('no list', async function () {
     this.plugin.cfg.check.helo = true
-    this.plugin.helo_access(
-      (rc) => {
-        const r = this.connection.results.get('access')
-        assert.equal(undefined, rc)
-        assert.ok(r && r.msg && r.msg.length)
-        done()
-      },
-      this.connection,
-      'host.example.com',
-    )
+    await new Promise((resolve) => {
+      this.plugin.helo_access(
+        (rc) => {
+          const r = this.connection.results.get('access')
+          assert.equal(undefined, rc)
+          assert.ok(r && r.msg && r.msg.length)
+          resolve()
+        },
+        this.connection,
+        'host.example.com',
+      )
+    })
   })
 
-  it('blacklisted regex', function (done) {
+  it('blacklisted regex', async function () {
     const black = ['.*spam.com']
     this.plugin.list_re.black.helo = new RegExp(`^(${black.join('|')})$`, 'i')
     this.plugin.cfg.check.helo = true
-    this.plugin.helo_access(
-      (rc) => {
-        assert.equal(DENY, rc)
-        const r = this.connection.results.get('access')
-        assert.ok(r && r.fail && r.fail.length)
-        done()
-      },
-      this.connection,
-      'bad.spam.com',
-    )
+    await new Promise((resolve) => {
+      this.plugin.helo_access(
+        (rc) => {
+          assert.equal(DENY, rc)
+          const r = this.connection.results.get('access')
+          assert.ok(r && r.fail && r.fail.length)
+          resolve()
+        },
+        this.connection,
+        'bad.spam.com',
+      )
+    })
   })
 })
 
@@ -354,71 +366,81 @@ describe('mail_from_access', function () {
     this.connection.init_transaction()
   })
 
-  it('no lists populated', function (done) {
-    this.plugin.mail_from_access(
-      (rc) => {
-        assert.equal(undefined, rc)
-        assert.ok(this.connection.transaction.results.get('access').msg.length)
-        done()
-      },
-      this.connection,
-      [new Address('<list@unknown.com>')],
-    )
+  it('no lists populated', async function () {
+    await new Promise((resolve) => {
+      this.plugin.mail_from_access(
+        (rc) => {
+          assert.equal(undefined, rc)
+          assert.ok(this.connection.transaction.results.get('access').msg.length)
+          resolve()
+        },
+        this.connection,
+        [new Address('<list@unknown.com>')],
+      )
+    })
   })
 
-  it('whitelisted addr', function (done) {
+  it('whitelisted addr', async function () {
     this.plugin.list.white.mail['list@harakamail.com'] = true
-    this.plugin.mail_from_access(
-      (rc) => {
-        assert.equal(undefined, rc)
-        assert.ok(this.connection.transaction.results.get('access').pass.length)
-        done()
-      },
-      this.connection,
-      [new Address('<list@harakamail.com>')],
-    )
+    await new Promise((resolve) => {
+      this.plugin.mail_from_access(
+        (rc) => {
+          assert.equal(undefined, rc)
+          assert.ok(this.connection.transaction.results.get('access').pass.length)
+          resolve()
+        },
+        this.connection,
+        [new Address('<list@harakamail.com>')],
+      )
+    })
   })
 
-  it('blacklisted addr', function (done) {
+  it('blacklisted addr', async function () {
     this.plugin.list.black.mail['list@badmail.com'] = true
-    this.plugin.mail_from_access(
-      (rc) => {
-        assert.equal(DENY, rc)
-        assert.ok(this.connection.transaction.results.get('access').fail.length)
-        done()
-      },
-      this.connection,
-      [new Address('<list@badmail.com>')],
-    )
+    await new Promise((resolve) => {
+      this.plugin.mail_from_access(
+        (rc) => {
+          assert.equal(DENY, rc)
+          assert.ok(this.connection.transaction.results.get('access').fail.length)
+          resolve()
+        },
+        this.connection,
+        [new Address('<list@badmail.com>')],
+      )
+    })
   })
 
-  it('blacklisted domain', function (done) {
+  it('blacklisted domain', async function () {
     const black = ['.*@spam.com']
     this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i')
-    this.plugin.mail_from_access(
-      (rc) => {
-        assert.equal(DENY, rc)
-        assert.ok(this.connection.transaction.results.get('access').fail.length)
-        done()
-      },
-      this.connection,
-      [new Address('<bad@spam.com>')],
-    )
+    await new Promise((resolve) => {
+      this.plugin.mail_from_access(
+        (rc) => {
+          assert.equal(DENY, rc)
+          assert.ok(this.connection.transaction.results.get('access').fail.length)
+          resolve()
+        },
+        this.connection,
+        [new Address('<bad@spam.com>')],
+      )
+    })
   })
 
-  it('blacklisted domain, white addr', function (done) {
+  it('blacklisted domain, white addr', async function () {
     this.plugin.list.white.mail['special@spam.com'] = true
     const black = ['.*@spam.com']
     this.plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i')
-    this.plugin.mail_from_access(
-      (rc) => {
-        assert.equal(undefined, rc)
-        assert.ok(this.connection.transaction.results.get('access').pass.length)
-        done()
-      },
-      this.connection,
-      [new Address('<special@spam.com>')],
-    )
+    await new Promise((resolve) => {
+      this.plugin.mail_from_access(
+        (rc) => {
+          assert.equal(undefined, rc)
+          assert.ok(this.connection.transaction.results.get('access').pass.length)
+          resolve()
+        },
+        this.connection,
+        [new Address('<special@spam.com>')],
+      )
+    })
   })
 })
 
@@ -433,97 +455,149 @@ describe('rcpt_to_access', function () {
     this.connection.init_transaction()
   })
 
-  it('no lists populated', function (done) {
+  it('no lists populated', async function () {
     const cb = function (rc) {
       assert.equal(undefined, rc)
       assert.ok(this.connection.transaction.results.get('access').msg.length)
-      done()
     }.bind(this)
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<user@example.com>'),
-    ])
+    await new Promise((resolve) => {
+      this.plugin.rcpt_to_access(
+        (rc) => {
+          cb(rc)
+          resolve()
+        },
+        this.connection,
+        [new Address('<user@example.com>')],
+      )
+    })
   })
 
-  it('whitelisted addr', function (done) {
+  it('whitelisted addr', async function () {
     let calls = 0
     const cb = function (rc) {
       assert.equal(undefined, rc)
       assert.ok(this.connection.transaction.results.get('access').pass.length)
       if (++calls == 2) {
-        done()
+        // done
       }
     }.bind(this)
     this.plugin.list.white.rcpt['user@example.com'] = true
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<user@example.com>'),
-    ])
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<USER@example.com>'),
+    await Promise.all([
+      new Promise((resolve) => {
+        this.plugin.rcpt_to_access(
+          (rc) => {
+            cb(rc)
+            resolve()
+          },
+          this.connection,
+          [new Address('<user@example.com>')],
+        )
+      }),
+      new Promise((resolve) => {
+        this.plugin.rcpt_to_access(
+          (rc) => {
+            cb(rc)
+            resolve()
+          },
+          this.connection,
+          [new Address('<USER@example.com>')],
+        )
+      }),
     ])
   })
 
-  it('whitelisted addr, accept enabled', function (done) {
+  it('whitelisted addr, accept enabled', async function () {
     const cb = function (rc) {
       assert.equal(OK, rc)
       assert.ok(this.connection.transaction.results.get('access').pass.length)
-      done()
     }.bind(this)
     this.plugin.cfg.rcpt.accept = true
     this.plugin.list.white.rcpt['user@example.com'] = true
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<user@example.com>'),
-    ])
+    await new Promise((resolve) => {
+      this.plugin.rcpt_to_access(
+        (rc) => {
+          cb(rc)
+          resolve()
+        },
+        this.connection,
+        [new Address('<user@example.com>')],
+      )
+    })
   })
 
-  it('regex whitelisted addr, accept enabled', function (done) {
+  it('regex whitelisted addr, accept enabled', async function () {
     const cb = function (rc) {
       assert.equal(OK, rc)
       assert.ok(this.connection.transaction.results.get('access').pass.length)
-      done()
     }.bind(this)
     this.plugin.cfg.rcpt.accept = true
     this.plugin.list_re.white.rcpt = new RegExp(`^user@example.com$`, 'i')
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<user@example.com>'),
-    ])
+    await new Promise((resolve) => {
+      this.plugin.rcpt_to_access(
+        (rc) => {
+          cb(rc)
+          resolve()
+        },
+        this.connection,
+        [new Address('<user@example.com>')],
+      )
+    })
   })
 
-  it('blacklisted addr', function (done) {
+  it('blacklisted addr', async function () {
     const cb = function (rc) {
       assert.equal(DENY, rc)
       assert.ok(this.connection.transaction.results.get('access').fail.length)
-      done()
     }.bind(this)
     this.plugin.list.black.rcpt['user@badmail.com'] = true
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<user@badmail.com>'),
-    ])
+    await new Promise((resolve) => {
+      this.plugin.rcpt_to_access(
+        (rc) => {
+          cb(rc)
+          resolve()
+        },
+        this.connection,
+        [new Address('<user@badmail.com>')],
+      )
+    })
   })
 
-  it('blacklisted domain', function (done) {
+  it('blacklisted domain', async function () {
     const cb = function (rc) {
       assert.equal(DENY, rc)
       assert.ok(this.connection.transaction.results.get('access').fail.length)
-      done()
     }.bind(this)
     const black = ['.*@spam.com']
     this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i')
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<bad@spam.com>'),
-    ])
+    await new Promise((resolve) => {
+      this.plugin.rcpt_to_access(
+        (rc) => {
+          cb(rc)
+          resolve()
+        },
+        this.connection,
+        [new Address('<bad@spam.com>')],
+      )
+    })
   })
 
-  it('blacklisted domain, white addr', function (done) {
+  it('blacklisted domain, white addr', async function () {
     const cb = function (rc) {
       assert.equal(undefined, rc)
       assert.ok(this.connection.transaction.results.get('access').pass.length)
-      done()
     }.bind(this)
     this.plugin.list.white.rcpt['special@spam.com'] = true
     const black = ['.*@spam.com']
     this.plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i')
-    this.plugin.rcpt_to_access(cb, this.connection, [
-      new Address('<special@spam.com>'),
-    ])
+    await new Promise((resolve) => {
+      this.plugin.rcpt_to_access(
+        (rc) => {
+          cb(rc)
+          resolve()
+        },
+        this.connection,
+        [new Address('<special@spam.com>')],
+      )
+    })
   })
 })
