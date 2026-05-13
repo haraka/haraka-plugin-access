@@ -34,7 +34,7 @@ describe('helo_access', () => {
 
   it('blacklisted regex', async () => {
     const black = ['.*spam.com']
-    plugin.list_re.black.helo = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.list_re.black.helo = [new RegExp(`^(${black.join('|')})$`, 'i')]
     plugin.cfg.check.helo = true
     await new Promise((resolve) => {
       plugin.helo_access(

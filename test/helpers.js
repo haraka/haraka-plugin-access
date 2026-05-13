@@ -100,7 +100,7 @@ describe('in_re_list', () => {
     const list = ['.*exam.ple', '.*example.com']
     plugin.cfg = { re: { white: { mail: 'test file name' } } }
     plugin.list_re = {
-      white: { mail: new RegExp(`^(${list.join('|')})$`, 'i') },
+      white: { mail: list.map((r) => new RegExp(`^(${r})$`, 'i')) },
     }
     assert.equal(true, plugin.in_re_list('white', 'mail', 'matt@exam.ple'))
     assert.equal(true, plugin.in_re_list('white', 'mail', 'matt@example.com'))
@@ -111,7 +111,7 @@ describe('in_re_list', () => {
     const list = ['.*exam.ple', '.*example.com']
     plugin.cfg = { re: { white: { rcpt: 'test file name' } } }
     plugin.list_re = {
-      white: { rcpt: new RegExp(`^(${list.join('|')})$`, 'i') },
+      white: { rcpt: list.map((r) => new RegExp(`^(${r})$`, 'i')) },
     }
     assert.equal(true, plugin.in_re_list('white', 'rcpt', 'matt@exam.ple'))
     assert.equal(true, plugin.in_re_list('white', 'rcpt', 'matt@example.com'))
@@ -122,7 +122,7 @@ describe('in_re_list', () => {
     const list = ['.*exam.ple', '.*example.com']
     plugin.cfg = { re: { white: { helo: 'test file name' } } }
     plugin.list_re = {
-      white: { helo: new RegExp(`^(${list.join('|')})$`, 'i') },
+      white: { helo: list.map((r) => new RegExp(`^(${r})$`, 'i')) },
     }
     assert.equal(true, plugin.in_re_list('white', 'helo', 'matt@exam.ple'))
     assert.equal(true, plugin.in_re_list('white', 'helo', 'matt@example.com'))
@@ -133,7 +133,7 @@ describe('in_re_list', () => {
     const list = ['.*exam.ple', '.*example.com']
     plugin.cfg = { re: { black: { mail: 'test file name' } } }
     plugin.list_re = {
-      black: { mail: new RegExp(`^(${list.join('|')})$`, 'i') },
+      black: { mail: list.map((r) => new RegExp(`^(${r})$`, 'i')) },
     }
     assert.equal(true, plugin.in_re_list('black', 'mail', 'matt@exam.ple'))
     assert.equal(true, plugin.in_re_list('black', 'mail', 'matt@example.com'))
@@ -144,7 +144,7 @@ describe('in_re_list', () => {
     const list = ['.*exam.ple', '.*example.com']
     plugin.cfg = { re: { black: { rcpt: 'test file name' } } }
     plugin.list_re = {
-      black: { rcpt: new RegExp(`^(${list.join('|')})$`, 'i') },
+      black: { rcpt: list.map((r) => new RegExp(`^(${r})$`, 'i')) },
     }
     assert.equal(true, plugin.in_re_list('black', 'rcpt', 'matt@exam.ple'))
     assert.equal(true, plugin.in_re_list('black', 'rcpt', 'matt@example.com'))
@@ -155,24 +155,24 @@ describe('in_re_list', () => {
     const list = ['.*exam.ple', '.*example.com']
     plugin.cfg = { re: { black: { helo: 'test file name' } } }
     plugin.list_re = {
-      black: { helo: new RegExp(`^(${list.join('|')})$`, 'i') },
+      black: { helo: list.map((r) => new RegExp(`^(${r})$`, 'i')) },
     }
     assert.equal(true, plugin.in_re_list('black', 'helo', 'matt@exam.ple'))
     assert.equal(true, plugin.in_re_list('black', 'helo', 'matt@example.com'))
     assert.equal(false, plugin.in_re_list('black', 'helo', 'matt@non-exist'))
   })
 
-  it('logs "checking" message with the regex pattern when list has entries', () => {
+  it('logs the matching regex pattern when list has entries', () => {
     // Regression: in_re_list was reading .source off the filename string
     // (cfg.re[type][phase]) instead of the compiled RegExp (list_re[type][phase]),
-    // so the "empty file" debug fired on every check and the "checking" debug
-    // never did.
+    // so the "empty file" debug fired on every check and a per-match debug
+    // line was never produced.
     const logs = []
     plugin.cfg = {
       re: { white: { mail: 'mail_from.access.whitelist_regex' } },
     }
     plugin.list_re = {
-      white: { mail: new RegExp('^(.*@example\\.com)$', 'i') },
+      white: { mail: [new RegExp('^(.*@example\\.com)$', 'i')] },
     }
     plugin.logdebug = (msg) => logs.push(msg)
 
@@ -180,8 +180,8 @@ describe('in_re_list', () => {
 
     const joined = logs.join(' | ')
     assert.ok(
-      logs.some((m) => m.startsWith('checking ') && m.includes('@example')),
-      `expected a "checking" log line, got: ${joined}`,
+      logs.some((m) => m.startsWith('matched ') && m.includes('@example')),
+      `expected a "matched" log line, got: ${joined}`,
     )
     assert.ok(
       !logs.some((m) => m.startsWith('empty file:')),

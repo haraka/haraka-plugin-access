@@ -99,11 +99,7 @@ exports.load_access_ini = function () {
 
   this.cfg.check = cfg.check
   if (cfg.deny_msg) {
-    for (const p in this.cfg.deny_msg) {
-      if (cfg.deny_msg[p]) {
-        this.cfg.deny_msg[p] = cfg.deny_msg[p]
-      }
-    }
+    Object.assign(this.cfg.deny_msg, cfg.deny_msg)
   }
 
   this.cfg.rcpt = cfg.rcpt
@@ -124,10 +120,13 @@ exports.load_access_ini = function () {
 }
 
 exports.init_lists = function () {
+  // null-prototype maps prevent prototype pollution from config-file entries
+  // (e.g. an entry of `__proto__` cannot reach Object.prototype)
+  const bag = () => Object.create(null)
   this.list = {
-    black: { conn: {}, helo: {}, mail: {}, rcpt: {} },
-    white: { conn: {}, helo: {}, mail: {}, rcpt: {} },
-    domain: { any: {} },
+    black: { conn: bag(), helo: bag(), mail: bag(), rcpt: bag() },
+    white: { conn: bag(), helo: bag(), mail: bag(), rcpt: bag() },
+    domain: { any: bag() },
   }
   this.list_re = {
     black: {},
@@ -135,12 +134,12 @@ exports.init_lists = function () {
   }
 }
 
-const invalidHosts = [undefined, null, '', 'DNSERROR', 'Unknown']
+const invalidHosts = new Set([undefined, null, '', 'DNSERROR', 'Unknown'])
 
 exports.get_domain = function (hook, connection, params) {
   switch (hook) {
     case 'connect':
-      if (invalidHosts.includes(connection.remote.host)) return
+      if (invalidHosts.has(connection.remote.host)) return
       return connection.remote.host
     case 'helo':
     case 'ehlo':
@@ -255,7 +254,7 @@ exports.rdns_is_listed = function (connection, color) {
 
     file = this.cfg.re[color].conn
     connection.logdebug(this, `checking ${addr} against ${file}`)
-    if (this.in_re_list(color, 'conn', addr)) {
+    if (this.in_re_list(color, 'conn', addr, connection)) {
       this.rdns_store_results(connection, color, file)
       return true
     }
@@ -281,7 +280,7 @@ exports.helo_access = function (next, connection, helo) {
   if (!this.cfg.check.helo) return next()
 
   const file = this.cfg.re.black.helo
-  if (this.in_re_list('black', 'helo', helo)) {
+  if (this.in_re_list('black', 'helo', helo, connection)) {
     connection.results.add(this, { fail: file, emit: true })
     return next(DENY, `${helo} ${this.cfg.deny_msg.helo}`)
   }
@@ -312,7 +311,7 @@ exports.mail_from_access = function (next, connection, params) {
 
   file = this.cfg.re.white.mail
   connection.logdebug(this, `checking ${mail_from} against ${file}`)
-  if (this.in_re_list('white', 'mail', mail_from)) {
+  if (this.in_re_list('white', 'mail', mail_from, connection)) {
     connection.transaction.results.add(this, { pass: file, emit: true })
     return next()
   }
@@ -326,7 +325,7 @@ exports.mail_from_access = function (next, connection, params) {
 
   file = this.cfg.re.black.mail
   connection.logdebug(this, `checking ${mail_from} against ${file}`)
-  if (this.in_re_list('black', 'mail', mail_from)) {
+  if (this.in_re_list('black', 'mail', mail_from, connection)) {
     connection.transaction.results.add(this, { fail: file, emit: true })
     return next(DENY, `${mail_from} ${this.cfg.deny_msg.mail}`)
   }
@@ -358,7 +357,7 @@ exports.rcpt_to_access = function (next, connection, params) {
   }
 
   file = this.cfg.re.white.rcpt
-  if (this.in_re_list('white', 'rcpt', rcpt_to)) {
+  if (this.in_re_list('white', 'rcpt', rcpt_to, connection)) {
     connection.transaction.results.add(this, { pass: file, emit: true })
     return next(pass_status)
   }
@@ -371,7 +370,7 @@ exports.rcpt_to_access = function (next, connection, params) {
   }
 
   file = this.cfg.re.black.rcpt
-  if (this.in_re_list('black', 'rcpt', rcpt_to)) {
+  if (this.in_re_list('black', 'rcpt', rcpt_to, connection)) {
     connection.transaction.results.add(this, { fail: file, emit: true })
     return next(DENY, `${rcpt_to} ${this.cfg.deny_msg.rcpt}`)
   }
@@ -437,11 +436,22 @@ exports.in_list = function (type, phase, address) {
   return false
 }
 
-exports.in_re_list = function (type, phase, address) {
-  const re = this.list_re[type][phase]
-  if (!re) return false
-  this.logdebug(`checking ${address} against ${re.source}`)
-  return re.test(address)
+exports.in_re_list = function (type, phase, address, connection) {
+  const regexes = this.list_re[type][phase]
+  if (!regexes?.length) return false
+
+  const log = connection
+    ? (m) => connection.logdebug(this, m)
+    : (m) => this.logdebug(m)
+
+  for (const re of regexes) {
+    if (re.test(address)) {
+      log(`matched ${address} against ${re.source}`)
+      return true
+    }
+  }
+  log(`no match for ${address} in ${type}/${phase}`)
+  return false
 }
 
 exports.load_file = function (type, phase) {
@@ -459,7 +469,7 @@ exports.load_file = function (type, phase) {
 
   // toLower when loading spends a fraction of a second at load time
   // to save millions of seconds during run time.
-  const listAsHash = {} // store as hash for speedy lookups
+  const listAsHash = Object.create(null) // null-proto: see init_lists
   for (const entry of list) {
     listAsHash[entry.toLowerCase()] = true
   }
@@ -480,12 +490,12 @@ exports.load_re_file = function (type, phase) {
 
   if (regex_list.length === 0) {
     this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
-    this.list_re[type][phase] = null
+    this.list_re[type][phase] = []
     return
   }
 
   // compile the regexes at the designated location
-  this.list_re[type][phase] = new RegExp(`^(${regex_list.join('|')})$`, 'i')
+  this.list_re[type][phase] = regex_list.map((r) => new RegExp(`^(${r})$`, 'i'))
 }
 
 exports.load_domain_file = function (type, phase) {

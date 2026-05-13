@@ -80,7 +80,7 @@ describe('rcpt_to_access', () => {
 
   it('regex whitelisted addr, accept enabled', async () => {
     plugin.cfg.rcpt.accept = true
-    plugin.list_re.white.rcpt = new RegExp(`^user@example.com$`, 'i')
+    plugin.list_re.white.rcpt = [new RegExp(`^user@example.com$`, 'i')]
     await new Promise((resolve) => {
       plugin.rcpt_to_access(
         (rc) => {
@@ -111,7 +111,7 @@ describe('rcpt_to_access', () => {
 
   it('blacklisted domain', async () => {
     const black = ['.*@spam.com']
-    plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.list_re.black.rcpt = black.map((r) => new RegExp(`^(${r})$`, 'i'))
     await new Promise((resolve) => {
       plugin.rcpt_to_access(
         (rc) => {
@@ -128,7 +128,7 @@ describe('rcpt_to_access', () => {
   it('blacklisted domain, white addr', async () => {
     plugin.list.white.rcpt['special@spam.com'] = true
     const black = ['.*@spam.com']
-    plugin.list_re.black.rcpt = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.list_re.black.rcpt = black.map((r) => new RegExp(`^(${r})$`, 'i'))
     await new Promise((resolve) => {
       plugin.rcpt_to_access(
         (rc) => {

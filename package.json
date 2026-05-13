@@ -36,6 +36,7 @@
   "homepage": "https://github.com/haraka/haraka-plugin-access#readme",
   "devDependencies": {
     "@haraka/eslint-config": "^2.0.4",
+    "address-rfc2821": "^2.1.5",
     "haraka-test-fixtures": "^1.4.3"
   },
   "dependencies": {

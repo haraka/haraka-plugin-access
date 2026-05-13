@@ -63,7 +63,7 @@ describe('rdns_access', () => {
     connection.remote.ip = '1.1.1.1'
     connection.remote.host = 'host.antispam.com'
     const black = ['.*spam.com']
-    plugin.list_re.black.conn = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.list_re.black.conn = black.map((r) => new RegExp(`^(${r})$`, 'i'))
     await new Promise((resolve) => {
       plugin.rdns_access((rc, msg) => {
         assert.equal(DENYDISCONNECT, rc)

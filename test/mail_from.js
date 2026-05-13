@@ -64,7 +64,7 @@ describe('mail_from_access', () => {
 
   it('blacklisted domain', async () => {
     const black = ['.*@spam.com']
-    plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.list_re.black.mail = black.map((r) => new RegExp(`^(${r})$`, 'i'))
     await new Promise((resolve) => {
       plugin.mail_from_access(
         (rc) => {
@@ -81,7 +81,7 @@ describe('mail_from_access', () => {
   it('blacklisted domain, white addr', async () => {
     plugin.list.white.mail['special@spam.com'] = true
     const black = ['.*@spam.com']
-    plugin.list_re.black.mail = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.list_re.black.mail = black.map((r) => new RegExp(`^(${r})$`, 'i'))
     await new Promise((resolve) => {
       plugin.mail_from_access(
         (rc) => {

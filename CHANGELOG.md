@@ -13,9 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - switch coverage reporter to node:test
 - remove unnecessary done callbacks in synchronous tests (#40)
 - deps: bumped all to latest
-- fix: in_re_list was reading .source off the filename string instead of the compiled regex
+- feat: logdebug the matching regex when a match is found
+- fix: in_re_list was reading .source off the filename string vs the compiled regex
 - fix: removed the dead if (!this.list) blocks
-- fix: removed the dead data_any guard checking, the hook is only registered when cfg.check.any is true.
+- fix: removed the dead data_any guard checking
+- fix: use Object.create(null) (vs `{}`) to prevent prototype pollution
+- change: use modern JS idioms to simplify code
 
 ### [1.1.10] - 2025-01-26
 
