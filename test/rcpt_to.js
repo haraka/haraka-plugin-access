@@ -7,6 +7,19 @@ const { describe, it, beforeEach } = require('node:test')
 const Address = require('address-rfc2821').Address
 const fixtures = require('haraka-test-fixtures')
 
+// constructs a plugin once at module load so the haraka-constants globals
+// (DENY, DENYDISCONNECT, OK, ...) are installed before the cases table below
+// is evaluated.
+new fixtures.plugin('access')
+
+const runHook = (plugin, method, ...args) =>
+  new Promise((resolve) =>
+    plugin[method]((rc, msg) => resolve({ rc, msg }), ...args),
+  )
+
+const addr = (s) => [new Address(s)]
+const compileRe = (patterns) => patterns.map((r) => new RegExp(`^(${r})$`, 'i'))
+
 describe('rcpt_to_access', () => {
   let plugin
   let connection
@@ -18,156 +31,104 @@ describe('rcpt_to_access', () => {
     connection.init_transaction()
   })
 
-  it('no lists populated', async () => {
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(undefined, rc)
-          assert.ok(connection.transaction.results.get('access').msg.length)
-          resolve()
-        },
+  const cases = [
+    {
+      name: 'no lists populated',
+      setup: () => {},
+      params: addr('<user@example.com>'),
+      expect: { rc: undefined, bucket: 'msg' },
+    },
+    {
+      name: 'whitelisted addr',
+      setup: (p) => {
+        p.list.white.rcpt['user@example.com'] = true
+      },
+      params: addr('<user@example.com>'),
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'whitelisted addr, case insensitive',
+      setup: (p) => {
+        p.list.white.rcpt['user@example.com'] = true
+      },
+      params: addr('<USER@example.com>'),
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'whitelisted addr, accept enabled',
+      setup: (p) => {
+        p.cfg.rcpt.accept = true
+        p.list.white.rcpt['user@example.com'] = true
+      },
+      params: addr('<user@example.com>'),
+      expect: { rc: OK, bucket: 'pass' },
+    },
+    {
+      name: 'regex whitelisted addr, accept enabled',
+      setup: (p) => {
+        p.cfg.rcpt.accept = true
+        p.list_re.white.rcpt = [new RegExp('^user@example.com$', 'i')]
+      },
+      params: addr('<user@example.com>'),
+      expect: { rc: OK, bucket: 'pass' },
+    },
+    {
+      name: 'blacklisted addr',
+      setup: (p) => {
+        p.list.black.rcpt['user@badmail.com'] = true
+      },
+      params: addr('<user@badmail.com>'),
+      expect: { rc: DENY, bucket: 'fail' },
+    },
+    {
+      name: 'blacklisted domain',
+      setup: (p) => {
+        p.list_re.black.rcpt = compileRe(['.*@spam.com'])
+      },
+      params: addr('<bad@spam.com>'),
+      expect: { rc: DENY, bucket: 'fail' },
+    },
+    {
+      name: 'blacklisted domain, white addr',
+      setup: (p) => {
+        p.list.white.rcpt['special@spam.com'] = true
+        p.list_re.black.rcpt = compileRe(['.*@spam.com'])
+      },
+      params: addr('<special@spam.com>'),
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'skips when params are missing',
+      setup: () => {},
+      params: [],
+      expect: { rc: undefined, bucket: 'skip' },
+    },
+  ]
+
+  for (const c of cases) {
+    it(c.name, async () => {
+      c.setup(plugin)
+      const { rc } = await runHook(
+        plugin,
+        'rcpt_to_access',
         connection,
-        [new Address('<user@example.com>')],
+        c.params,
+      )
+      assert.equal(rc, c.expect.rc)
+      assert.ok(
+        connection.transaction.results.get('access')[c.expect.bucket].length,
       )
     })
-  })
-
-  it('whitelisted addr', async () => {
-    plugin.list.white.rcpt['user@example.com'] = true
-    const assertPass = (rc) => {
-      assert.equal(undefined, rc)
-      assert.ok(connection.transaction.results.get('access').pass.length)
-    }
-    await Promise.all([
-      new Promise((resolve) => {
-        plugin.rcpt_to_access(
-          (rc) => {
-            assertPass(rc)
-            resolve()
-          },
-          connection,
-          [new Address('<user@example.com>')],
-        )
-      }),
-      new Promise((resolve) => {
-        plugin.rcpt_to_access(
-          (rc) => {
-            assertPass(rc)
-            resolve()
-          },
-          connection,
-          [new Address('<USER@example.com>')],
-        )
-      }),
-    ])
-  })
-
-  it('whitelisted addr, accept enabled', async () => {
-    plugin.cfg.rcpt.accept = true
-    plugin.list.white.rcpt['user@example.com'] = true
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(OK, rc)
-          assert.ok(connection.transaction.results.get('access').pass.length)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
-
-  it('regex whitelisted addr, accept enabled', async () => {
-    plugin.cfg.rcpt.accept = true
-    plugin.list_re.white.rcpt = [new RegExp(`^user@example.com$`, 'i')]
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(OK, rc)
-          assert.ok(connection.transaction.results.get('access').pass.length)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
-
-  it('blacklisted addr', async () => {
-    plugin.list.black.rcpt['user@badmail.com'] = true
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(DENY, rc)
-          assert.ok(connection.transaction.results.get('access').fail.length)
-          resolve()
-        },
-        connection,
-        [new Address('<user@badmail.com>')],
-      )
-    })
-  })
-
-  it('blacklisted domain', async () => {
-    const black = ['.*@spam.com']
-    plugin.list_re.black.rcpt = black.map((r) => new RegExp(`^(${r})$`, 'i'))
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(DENY, rc)
-          assert.ok(connection.transaction.results.get('access').fail.length)
-          resolve()
-        },
-        connection,
-        [new Address('<bad@spam.com>')],
-      )
-    })
-  })
-
-  it('blacklisted domain, white addr', async () => {
-    plugin.list.white.rcpt['special@spam.com'] = true
-    const black = ['.*@spam.com']
-    plugin.list_re.black.rcpt = black.map((r) => new RegExp(`^(${r})$`, 'i'))
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(undefined, rc)
-          assert.ok(connection.transaction.results.get('access').pass.length)
-          resolve()
-        },
-        connection,
-        [new Address('<special@spam.com>')],
-      )
-    })
-  })
-
-  it('skips when params are missing', async () => {
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(rc, undefined)
-          const r = connection.transaction.results.get('access')
-          assert.ok(r.skip.length)
-          resolve()
-        },
-        connection,
-        [],
-      )
-    })
-  })
+  }
 
   it('returns next() when check.rcpt is false', async () => {
     plugin.cfg.check.rcpt = false
-    await new Promise((resolve) => {
-      plugin.rcpt_to_access(
-        (rc) => {
-          assert.equal(rc, undefined)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
+    const { rc } = await runHook(
+      plugin,
+      'rcpt_to_access',
+      connection,
+      addr('<user@example.com>'),
+    )
+    assert.equal(rc, undefined)
   })
 })

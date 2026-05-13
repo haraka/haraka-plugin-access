@@ -7,6 +7,19 @@ const { describe, it, beforeEach } = require('node:test')
 const Address = require('address-rfc2821').Address
 const fixtures = require('haraka-test-fixtures')
 
+// constructs a plugin once at module load so the haraka-constants globals
+// (DENY, DENYDISCONNECT, OK, ...) are installed before the cases table below
+// is evaluated.
+new fixtures.plugin('access')
+
+const runHook = (plugin, method, ...args) =>
+  new Promise((resolve) =>
+    plugin[method]((rc, msg) => resolve({ rc, msg }), ...args),
+  )
+
+const addr = (s) => [new Address(s)]
+const compileRe = (patterns) => patterns.map((r) => new RegExp(`^(${r})$`, 'i'))
+
 describe('mail_from_access', () => {
   let plugin
   let connection
@@ -18,124 +31,84 @@ describe('mail_from_access', () => {
     connection.init_transaction()
   })
 
-  it('no lists populated', async () => {
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(undefined, rc)
-          assert.ok(connection.transaction.results.get('access').msg.length)
-          resolve()
-        },
-        connection,
-        [new Address('<list@unknown.com>')],
-      )
-    })
-  })
+  const cases = [
+    {
+      name: 'no lists populated',
+      setup: () => {},
+      params: addr('<list@unknown.com>'),
+      expect: { rc: undefined, bucket: 'msg' },
+    },
+    {
+      name: 'whitelisted addr',
+      setup: (p) => {
+        p.list.white.mail['list@harakamail.com'] = true
+      },
+      params: addr('<list@harakamail.com>'),
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'blacklisted addr',
+      setup: (p) => {
+        p.list.black.mail['list@badmail.com'] = true
+      },
+      params: addr('<list@badmail.com>'),
+      expect: { rc: DENY, bucket: 'fail' },
+    },
+    {
+      name: 'blacklisted domain',
+      setup: (p) => {
+        p.list_re.black.mail = compileRe(['.*@spam.com'])
+      },
+      params: addr('<bad@spam.com>'),
+      expect: { rc: DENY, bucket: 'fail' },
+    },
+    {
+      name: 'blacklisted domain, white addr',
+      setup: (p) => {
+        p.list.white.mail['special@spam.com'] = true
+        p.list_re.black.mail = compileRe(['.*@spam.com'])
+      },
+      params: addr('<special@spam.com>'),
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'skips null sender',
+      setup: () => {},
+      params: addr('<>'),
+      expect: { rc: undefined, bucket: 'skip' },
+    },
+    {
+      name: 'skips when params are missing',
+      setup: () => {},
+      params: [],
+      expect: { rc: undefined, bucket: 'skip' },
+    },
+  ]
 
-  it('whitelisted addr', async () => {
-    plugin.list.white.mail['list@harakamail.com'] = true
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(undefined, rc)
-          assert.ok(connection.transaction.results.get('access').pass.length)
-          resolve()
-        },
+  for (const c of cases) {
+    it(c.name, async () => {
+      c.setup(plugin)
+      const { rc } = await runHook(
+        plugin,
+        'mail_from_access',
         connection,
-        [new Address('<list@harakamail.com>')],
+        c.params,
+      )
+      assert.equal(rc, c.expect.rc)
+      assert.ok(
+        connection.transaction.results.get('access')[c.expect.bucket].length,
       )
     })
-  })
-
-  it('blacklisted addr', async () => {
-    plugin.list.black.mail['list@badmail.com'] = true
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(DENY, rc)
-          assert.ok(connection.transaction.results.get('access').fail.length)
-          resolve()
-        },
-        connection,
-        [new Address('<list@badmail.com>')],
-      )
-    })
-  })
-
-  it('blacklisted domain', async () => {
-    const black = ['.*@spam.com']
-    plugin.list_re.black.mail = black.map((r) => new RegExp(`^(${r})$`, 'i'))
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(DENY, rc)
-          assert.ok(connection.transaction.results.get('access').fail.length)
-          resolve()
-        },
-        connection,
-        [new Address('<bad@spam.com>')],
-      )
-    })
-  })
-
-  it('blacklisted domain, white addr', async () => {
-    plugin.list.white.mail['special@spam.com'] = true
-    const black = ['.*@spam.com']
-    plugin.list_re.black.mail = black.map((r) => new RegExp(`^(${r})$`, 'i'))
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(undefined, rc)
-          assert.ok(connection.transaction.results.get('access').pass.length)
-          resolve()
-        },
-        connection,
-        [new Address('<special@spam.com>')],
-      )
-    })
-  })
-
-  it('skips null sender', async () => {
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(rc, undefined)
-          const r = connection.transaction.results.get('access')
-          assert.ok(r.skip.length)
-          resolve()
-        },
-        connection,
-        [new Address('<>')],
-      )
-    })
-  })
-
-  it('skips when params are missing', async () => {
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(rc, undefined)
-          const r = connection.transaction.results.get('access')
-          assert.ok(r.skip.length)
-          resolve()
-        },
-        connection,
-        [],
-      )
-    })
-  })
+  }
 
   it('returns next() when check.mail is false', async () => {
     plugin.cfg.check.mail = false
-    await new Promise((resolve) => {
-      plugin.mail_from_access(
-        (rc) => {
-          assert.equal(rc, undefined)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
+    const { rc } = await runHook(
+      plugin,
+      'mail_from_access',
+      connection,
+      addr('<user@example.com>'),
+    )
+    assert.equal(rc, undefined)
   })
 })

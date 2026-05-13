@@ -8,6 +8,16 @@ const Address = require('address-rfc2821').Address
 const fixtures = require('haraka-test-fixtures')
 const tlds = require('haraka-tld')
 
+// constructs a plugin once at module load so the haraka-constants globals
+// (DENY, DENYDISCONNECT, OK, ...) are installed before the cases table below
+// is evaluated.
+new fixtures.plugin('access')
+
+const runHook = (plugin, method, ...args) =>
+  new Promise((resolve) =>
+    plugin[method]((rc, msg) => resolve({ rc, msg }), ...args),
+  )
+
 // haraka-tld loads its public suffix and TLD lists asynchronously; any test
 // that calls get_organizational_domain must wait for that to finish.
 before(async () => {
@@ -27,39 +37,21 @@ describe('get_domain', () => {
     assert.equal(plugin.get_domain('connect', connection), 'host.example.com')
   })
 
-  it('connect: undefined when remote.host is missing', () => {
-    connection.remote.host = undefined
-    assert.equal(plugin.get_domain('connect', connection), undefined)
-  })
+  for (const host of [undefined, 'DNSERROR', 'Unknown', 'NXDOMAIN']) {
+    it(`connect: undefined when remote.host is ${host}`, () => {
+      connection.remote.host = host
+      assert.equal(plugin.get_domain('connect', connection), undefined)
+    })
+  }
 
-  it('connect: undefined when remote.host is DNSERROR', () => {
-    connection.remote.host = 'DNSERROR'
-    assert.equal(plugin.get_domain('connect', connection), undefined)
-  })
-
-  it('connect: undefined when remote.host is Unknown', () => {
-    connection.remote.host = 'Unknown'
-    assert.equal(plugin.get_domain('connect', connection), undefined)
-  })
-
-  it('connect: undefined when remote.host is NXDOMAIN', () => {
-    connection.remote.host = 'NXDOMAIN'
-    assert.equal(plugin.get_domain('connect', connection), undefined)
-  })
-
-  it('helo: returns helo string', () => {
-    assert.equal(
-      plugin.get_domain('helo', connection, 'mail.example.com'),
-      'mail.example.com',
-    )
-  })
-
-  it('ehlo: returns helo string', () => {
-    assert.equal(
-      plugin.get_domain('ehlo', connection, 'mail.example.com'),
-      'mail.example.com',
-    )
-  })
+  for (const hook of ['helo', 'ehlo']) {
+    it(`${hook}: returns helo string`, () => {
+      assert.equal(
+        plugin.get_domain(hook, connection, 'mail.example.com'),
+        'mail.example.com',
+      )
+    })
+  }
 
   it('helo: undefined for IP literal', () => {
     assert.equal(
@@ -95,170 +87,126 @@ describe('any', () => {
     connection.init_transaction()
   })
 
-  it('returns next() when check.any is false', async () => {
-    plugin.cfg.check.any = false
-    connection.hook = 'mail'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, undefined)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
+  const userAddr = [new Address('<user@example.com>')]
 
-  it('returns next() when no hook detected', async () => {
-    connection.hook = undefined
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, undefined)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
+  const cases = [
+    {
+      name: 'returns next() when check.any is false',
+      setup: (p, c) => {
+        p.cfg.check.any = false
+        c.hook = 'mail'
+      },
+      args: [userAddr],
+      expect: { rc: undefined },
+    },
+    {
+      name: 'returns next() when no hook detected',
+      setup: (_, c) => {
+        c.hook = undefined
+      },
+      args: [userAddr],
+      expect: { rc: undefined },
+    },
+    {
+      name: 'returns next() when domain detection fails',
+      setup: (_, c) => {
+        c.hook = 'connect'
+        c.remote.host = undefined
+      },
+      args: [],
+      expect: { rc: undefined },
+    },
+    {
+      name: 'records fail for invalid domain (no dot)',
+      setup: (_, c) => {
+        c.hook = 'helo'
+      },
+      args: ['PC-100'],
+      expect: { rc: undefined, bucket: 'fail' },
+    },
+    {
+      name: 'blocks mail from a blacklisted domain',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        c.hook = 'mail'
+      },
+      args: [userAddr],
+      expect: {
+        rc: DENY,
+        msg: 'You are not welcome here.',
+        bucket: 'fail',
+      },
+    },
+    {
+      name: 'blocks rcpt to a blacklisted domain',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        c.hook = 'rcpt'
+      },
+      args: [userAddr],
+      expect: { rc: DENY },
+    },
+    {
+      name: 'blocks on connect when rDNS matches blacklisted org domain',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        c.hook = 'connect'
+        c.remote.host = 'mail.example.com'
+      },
+      args: [],
+      expect: { rc: DENY },
+    },
+    {
+      name: 'blocks on helo when helo matches blacklisted org domain',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        c.hook = 'helo'
+      },
+      args: ['mail.example.com'],
+      expect: { rc: DENY },
+    },
+    {
+      name: 'whitelist entry !email overrides domain blacklist',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        p.list.domain.any['!friend@example.com'] = true
+        c.hook = 'mail'
+      },
+      args: [[new Address('<friend@example.com>')]],
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'whitelist entry !host overrides blacklist on connect',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        p.list.domain.any['!special.example.com'] = true
+        c.hook = 'connect'
+        c.remote.host = 'special.example.com'
+      },
+      args: [],
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'records unlisted msg when domain not in list',
+      setup: (_, c) => {
+        c.hook = 'mail'
+      },
+      args: [userAddr],
+      expect: { rc: undefined, bucket: 'msg' },
+    },
+  ]
 
-  it('returns next() when domain detection fails', async () => {
-    connection.hook = 'connect'
-    connection.remote.host = undefined
-    await new Promise((resolve) => {
-      plugin.any((rc) => {
-        assert.equal(rc, undefined)
-        resolve()
-      }, connection)
+  for (const c of cases) {
+    it(c.name, async () => {
+      c.setup(plugin, connection)
+      const { rc, msg } = await runHook(plugin, 'any', connection, ...c.args)
+      assert.equal(rc, c.expect.rc)
+      if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
+      if (c.expect.bucket) {
+        assert.ok(connection.results.get('access')[c.expect.bucket].length)
+      }
     })
-  })
-
-  it('records fail for invalid domain (no dot)', async () => {
-    connection.hook = 'helo'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, undefined)
-          const r = connection.results.get('access')
-          assert.ok(r.fail.length)
-          resolve()
-        },
-        connection,
-        'PC-100',
-      )
-    })
-  })
-
-  it('blocks mail from a blacklisted domain', async () => {
-    plugin.list.domain.any['example.com'] = true
-    connection.hook = 'mail'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc, msg) => {
-          assert.equal(rc, DENY)
-          assert.equal(msg, 'You are not welcome here.')
-          const r = connection.results.get('access')
-          assert.ok(r.fail.length)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
-
-  it('blocks rcpt to a blacklisted domain', async () => {
-    plugin.list.domain.any['example.com'] = true
-    connection.hook = 'rcpt'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, DENY)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
-
-  it('blocks on connect when rDNS matches blacklisted org domain', async () => {
-    plugin.list.domain.any['example.com'] = true
-    connection.hook = 'connect'
-    connection.remote.host = 'mail.example.com'
-    await new Promise((resolve) => {
-      plugin.any((rc) => {
-        assert.equal(rc, DENY)
-        resolve()
-      }, connection)
-    })
-  })
-
-  it('blocks on helo when helo matches blacklisted org domain', async () => {
-    plugin.list.domain.any['example.com'] = true
-    connection.hook = 'helo'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, DENY)
-          resolve()
-        },
-        connection,
-        'mail.example.com',
-      )
-    })
-  })
-
-  it('whitelist entry !email overrides domain blacklist', async () => {
-    plugin.list.domain.any['example.com'] = true
-    plugin.list.domain.any['!friend@example.com'] = true
-    connection.hook = 'mail'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, undefined)
-          const r = connection.results.get('access')
-          assert.ok(r.pass.length)
-          resolve()
-        },
-        connection,
-        [new Address('<friend@example.com>')],
-      )
-    })
-  })
-
-  it('whitelist entry !host overrides blacklist on connect', async () => {
-    plugin.list.domain.any['example.com'] = true
-    plugin.list.domain.any['!special.example.com'] = true
-    connection.hook = 'connect'
-    connection.remote.host = 'special.example.com'
-    await new Promise((resolve) => {
-      plugin.any((rc) => {
-        assert.equal(rc, undefined)
-        const r = connection.results.get('access')
-        assert.ok(r.pass.length)
-        resolve()
-      }, connection)
-    })
-  })
-
-  it('records unlisted msg when domain not in list', async () => {
-    connection.hook = 'mail'
-    await new Promise((resolve) => {
-      plugin.any(
-        (rc) => {
-          assert.equal(rc, undefined)
-          const r = connection.results.get('access')
-          assert.ok(r.msg.length)
-          resolve()
-        },
-        connection,
-        [new Address('<user@example.com>')],
-      )
-    })
-  })
+  }
 })
 
 describe('data_any', () => {
@@ -273,67 +221,58 @@ describe('data_any', () => {
     connection.init_transaction()
   })
 
-  it('fails when From header is missing', async () => {
-    await new Promise((resolve) => {
-      plugin.data_any((rc) => {
-        assert.equal(rc, undefined)
-        const r = connection.transaction.results.get('access')
-        assert.ok(r.fail.length)
-        resolve()
-      }, connection)
-    })
-  })
+  const cases = [
+    {
+      name: 'fails when From header is missing',
+      setup: () => {},
+      expect: { rc: undefined, bucket: 'fail', resultsOn: 'transaction' },
+    },
+    {
+      name: 'fails when From header is unparsable',
+      setup: (_, c) => c.transaction.add_header('From', '@@@bogus@@@'),
+      expect: { rc: undefined, bucket: 'fail', resultsOn: 'transaction' },
+    },
+    {
+      name: 'passes when From org domain is whitelisted',
+      setup: (p, c) => {
+        p.list.domain.any['!example.com'] = true
+        c.transaction.add_header('From', 'user@example.com')
+      },
+      expect: { rc: undefined, bucket: 'pass', resultsOn: 'connection' },
+    },
+    {
+      name: 'blocks when From org domain is blacklisted',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        c.transaction.add_header('From', 'user@example.com')
+      },
+      expect: {
+        rc: DENY,
+        msg: 'Email from that domain is not accepted here.',
+        bucket: 'fail',
+        resultsOn: 'connection',
+      },
+    },
+    {
+      name: 'records unlisted msg when From not in list',
+      setup: (_, c) => c.transaction.add_header('From', 'user@example.com'),
+      expect: { rc: undefined, bucket: 'msg', resultsOn: 'connection' },
+    },
+  ]
 
-  it('fails when From header is unparsable', async () => {
-    connection.transaction.add_header('From', '@@@bogus@@@')
-    await new Promise((resolve) => {
-      plugin.data_any((rc) => {
-        assert.equal(rc, undefined)
-        const r = connection.transaction.results.get('access')
-        assert.ok(r.fail.length)
-        resolve()
-      }, connection)
+  for (const c of cases) {
+    it(c.name, async () => {
+      c.setup(plugin, connection)
+      const { rc, msg } = await runHook(plugin, 'data_any', connection)
+      assert.equal(rc, c.expect.rc)
+      if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
+      const source =
+        c.expect.resultsOn === 'transaction'
+          ? connection.transaction
+          : connection
+      assert.ok(source.results.get('access')[c.expect.bucket].length)
     })
-  })
-
-  it('passes when From org domain is whitelisted', async () => {
-    plugin.list.domain.any['!example.com'] = true
-    connection.transaction.add_header('From', 'user@example.com')
-    await new Promise((resolve) => {
-      plugin.data_any((rc) => {
-        assert.equal(rc, undefined)
-        const r = connection.results.get('access')
-        assert.ok(r.pass.length)
-        resolve()
-      }, connection)
-    })
-  })
-
-  it('blocks when From org domain is blacklisted', async () => {
-    plugin.list.domain.any['example.com'] = true
-    connection.transaction.add_header('From', 'user@example.com')
-    await new Promise((resolve) => {
-      plugin.data_any((rc, msg) => {
-        assert.equal(rc, DENY)
-        assert.equal(msg, 'Email from that domain is not accepted here.')
-        const r = connection.results.get('access')
-        assert.ok(r.fail.length)
-        resolve()
-      }, connection)
-    })
-  })
-
-  it('records unlisted msg when From not in list', async () => {
-    connection.transaction.add_header('From', 'user@example.com')
-    await new Promise((resolve) => {
-      plugin.data_any((rc) => {
-        assert.equal(rc, undefined)
-        const r = connection.results.get('access')
-        assert.ok(r.msg.length)
-        resolve()
-      }, connection)
-    })
-  })
+  }
 })
 
 describe('load_domain_file', () => {
