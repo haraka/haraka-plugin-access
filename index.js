@@ -136,11 +136,10 @@ exports.init_lists = function () {
 }
 
 exports.get_domain = function (hook, connection, params) {
+  const invalidHosts = [undefined, null, 'DNSERROR', 'Unknown']
   switch (hook) {
     case 'connect':
-      if (!connection.remote.host) return
-      if (connection.remote.host === 'DNSERROR') return
-      if (connection.remote.host === 'Unknown') return
+      if (invalidHosts.includes(connection.remote.host)) return
       return connection.remote.host
     case 'helo':
     case 'ehlo':
@@ -160,7 +159,7 @@ exports.any_whitelist = function (
   domain,
   org_domain,
 ) {
-  if (hook === 'mail' || hook === 'rcpt') {
+  if (['mail', 'rcpt'].includes(hook)) {
     const email = params[0].address()
     if (email && this.in_list('domain', 'any', `!${email}`)) return true
   }
