@@ -2,62 +2,63 @@
 
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { describe, it, beforeEach } = require('node:test')
 
 const fixtures = require('haraka-test-fixtures')
 
-describe('helo_access', function () {
-  beforeEach(function () {
-    this.plugin = new fixtures.plugin('access')
-    this.plugin.config = this.plugin.config.module_config(
-      path.resolve(__dirname),
-    )
-    this.plugin.register()
-    this.connection = fixtures.connection.createConnection()
+describe('helo_access', () => {
+  let plugin
+  let connection
+  beforeEach(() => {
+    plugin = new fixtures.plugin('access')
+    plugin.config = plugin.config.module_config(path.resolve(__dirname))
+    plugin.register()
+    connection = fixtures.connection.createConnection()
   })
 
-  it('no list', async function () {
-    this.plugin.cfg.check.helo = true
+  it('no list', async () => {
+    plugin.cfg.check.helo = true
     await new Promise((resolve) => {
-      this.plugin.helo_access(
+      plugin.helo_access(
         (rc) => {
-          const r = this.connection.results.get('access')
+          const r = connection.results.get('access')
           assert.equal(undefined, rc)
           assert.ok(r && r.msg && r.msg.length)
           resolve()
         },
-        this.connection,
+        connection,
         'host.example.com',
       )
     })
   })
 
-  it('blacklisted regex', async function () {
+  it('blacklisted regex', async () => {
     const black = ['.*spam.com']
-    this.plugin.list_re.black.helo = new RegExp(`^(${black.join('|')})$`, 'i')
-    this.plugin.cfg.check.helo = true
+    plugin.list_re.black.helo = new RegExp(`^(${black.join('|')})$`, 'i')
+    plugin.cfg.check.helo = true
     await new Promise((resolve) => {
-      this.plugin.helo_access(
+      plugin.helo_access(
         (rc) => {
           assert.equal(DENY, rc)
-          const r = this.connection.results.get('access')
+          const r = connection.results.get('access')
           assert.ok(r && r.fail && r.fail.length)
           resolve()
         },
-        this.connection,
+        connection,
         'bad.spam.com',
       )
     })
   })
 
-  it('returns next() when check.helo is false', async function () {
-    this.plugin.cfg.check.helo = false
+  it('returns next() when check.helo is false', async () => {
+    plugin.cfg.check.helo = false
     await new Promise((resolve) => {
-      this.plugin.helo_access(
+      plugin.helo_access(
         (rc) => {
           assert.equal(rc, undefined)
           resolve()
         },
-        this.connection,
+        connection,
         'host.example.com',
       )
     })

@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.2.0] - 2026-05-12
 
-- tests: added lots of them, split tests into multiple files
+- tests:
+  - added lots of them
+  - split tests into multiple files
+  - switch runner to node:test
+  - switch coverage reporter to node:test
 - remove unnecessary done callbacks in synchronous tests (#40)
 - deps: bumped all to latest
 - fix: in_re_list was reading .source off the filename string instead of the compiled regex
