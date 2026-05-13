@@ -4,6 +4,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.2.0] - 2026-05-12
+
+- tests: added lots of them, split tests into multiple files
+- remove unnecessary done callbacks in synchronous tests (#40)
+- deps: bumped all to latest
+- fix: in_re_list was reading .source off the filename string instead of the compiled regex
+- fix: removed the dead if (!this.list) blocks
+- fix: removed the dead data_any guard checking, the hook is only registered when cfg.check.any is true.
+
 ### [1.1.10] - 2025-01-26
 
 - code formatting with prettier
@@ -71,3 +80,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.1.8]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.8
 [1.1.9]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.9
 [1.1.10]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.10
+[1.2.0]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.2.0

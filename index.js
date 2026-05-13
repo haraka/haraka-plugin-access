@@ -99,8 +99,7 @@ exports.load_access_ini = function () {
 
   this.cfg.check = cfg.check
   if (cfg.deny_msg) {
-    let p
-    for (p in this.cfg.deny_msg) {
+    for (const p in this.cfg.deny_msg) {
       if (cfg.deny_msg[p]) {
         this.cfg.deny_msg[p] = cfg.deny_msg[p]
       }
@@ -224,8 +223,7 @@ exports.any = function (next, connection, params) {
     return next(DENY, 'You are not welcome here.')
   }
 
-  const umsg = hook ? `${hook}:any` : 'any'
-  connection.results.add(this, { msg: `unlisted(${umsg})` })
+  connection.results.add(this, { msg: `unlisted(${hook}:any)` })
   next()
 }
 
@@ -386,11 +384,6 @@ exports.rcpt_to_access = function (next, connection, params) {
 }
 
 exports.data_any = function (next, connection) {
-  if (!this.cfg.check.data && !this.cfg.check.any) {
-    connection.transaction.results.add(this, { skip: 'data(disabled)' })
-    return next()
-  }
-
   const hdr_from = connection.transaction.header.get_decoded('From')
   if (!hdr_from) {
     connection.transaction.results.add(this, { fail: 'data(missing_from)' })
@@ -452,14 +445,13 @@ exports.in_list = function (type, phase, address) {
 }
 
 exports.in_re_list = function (type, phase, address) {
-  if (!this.list_re[type][phase]) {
-    return false
-  }
-  if (!this.cfg.re[type][phase].source) {
+  if (!this.list_re[type][phase]) return false
+
+  if (!this.list_re[type][phase].source) {
     this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
   } else {
     this.logdebug(
-      `checking ${address} against ` + `${this.cfg.re[type][phase].source}`,
+      `checking ${address} against ${this.list_re[type][phase].source}`,
     )
   }
   return this.list_re[type][phase].test(address)
@@ -478,10 +470,6 @@ exports.load_file = function (type, phase) {
     this.load_file(type, phase)
   })
 
-  // init the list store, type is white or black
-  if (!this.list) this.list = { type: {} }
-  if (!this.list[type]) this.list[type] = {}
-
   // toLower when loading spends a fraction of a second at load time
   // to save millions of seconds during run time.
   const listAsHash = {} // store as hash for speedy lookups
@@ -497,16 +485,11 @@ exports.load_re_file = function (type, phase) {
     return
   }
 
-  const plugin = this
   const regex_list = utils.valid_regexes(
-    plugin.config.get(plugin.cfg.re[type][phase], 'list', () => {
-      plugin.load_re_file(type, phase)
+    this.config.get(this.cfg.re[type][phase], 'list', () => {
+      this.load_re_file(type, phase)
     }),
   )
-
-  // initialize the list store
-  if (!this.list_re) this.list_re = { type: {} }
-  if (!this.list_re[type]) this.list_re[type] = {}
 
   // compile the regexes at the designated location
   this.list_re[type][phase] = new RegExp(`^(${regex_list.join('|')})$`, 'i')
@@ -523,10 +506,6 @@ exports.load_domain_file = function (type, phase) {
     this.load_domain_file(type, phase)
   })
 
-  // init the list store, if needed
-  if (!this.list) this.list = { type: {} }
-  if (!this.list[type]) this.list[type] = {}
-
   // lowercase list items at load (much faster than at run time)
   for (const entry of list) {
     if (entry[0] === '!') {
@@ -535,7 +514,7 @@ exports.load_domain_file = function (type, phase) {
       continue
     }
 
-    if (/@/.test(entry[0])) {
+    if (/@/.test(entry)) {
       // email address
       this.list[type][phase][entry.toLowerCase()] = true
       continue
