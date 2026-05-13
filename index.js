@@ -108,18 +108,18 @@ exports.load_access_ini = function () {
 
   this.cfg.rcpt = cfg.rcpt
 
-  // backwards compatibility
-  const mf_cfg = this.config.get('mail_from.access.ini')
-  if (mf_cfg && mf_cfg.general && mf_cfg.general.deny_msg) {
-    this.cfg.deny_msg.mail = mf_cfg.general.deny_msg
+  // backwards compatibility with the rdns_access, mail_from.access, and
+  // rcpt_to.access plugins this one replaced
+  const compatFiles = {
+    mail: 'mail_from.access.ini',
+    rcpt: 'rcpt_to.access.ini',
+    conn: 'connect.rdns_access.ini',
   }
-  const rcpt_cfg = this.config.get('rcpt_to.access.ini')
-  if (rcpt_cfg && rcpt_cfg.general && rcpt_cfg.general.deny_msg) {
-    this.cfg.deny_msg.rcpt = rcpt_cfg.general.deny_msg
-  }
-  const rdns_cfg = this.config.get('connect.rdns_access.ini')
-  if (rdns_cfg && rdns_cfg.general && rdns_cfg.general.deny_msg) {
-    this.cfg.deny_msg.conn = rdns_cfg.general.deny_msg
+  for (const [phase, file] of Object.entries(compatFiles)) {
+    const compat = this.config.get(file)
+    if (compat?.general?.deny_msg) {
+      this.cfg.deny_msg[phase] = compat.general.deny_msg
+    }
   }
 }
 
@@ -135,8 +135,9 @@ exports.init_lists = function () {
   }
 }
 
+const invalidHosts = [undefined, null, '', 'DNSERROR', 'Unknown']
+
 exports.get_domain = function (hook, connection, params) {
-  const invalidHosts = [undefined, null, 'DNSERROR', 'Unknown']
   switch (hook) {
     case 'connect':
       if (invalidHosts.includes(connection.remote.host)) return
@@ -147,7 +148,7 @@ exports.get_domain = function (hook, connection, params) {
       return params
     case 'mail':
     case 'rcpt':
-      if (params && params[0]) return params[0].host
+      return params?.[0]?.host
   }
   return
 }
@@ -160,7 +161,7 @@ exports.any_whitelist = function (
   org_domain,
 ) {
   if (['mail', 'rcpt'].includes(hook)) {
-    const email = params[0].address()
+    const email = params?.[0]?.address?.()
     if (email && this.in_list('domain', 'any', `!${email}`)) return true
   }
 
@@ -242,7 +243,7 @@ exports.rdns_is_listed = function (connection, color) {
 
   for (let addr of addrs) {
     if (!addr) continue // empty rDNS host
-    if (/[\w]/.test(addr)) addr = addr.toLowerCase()
+    addr = addr.toLowerCase()
 
     let file = this.cfg[color].conn
     connection.logdebug(this, `checking ${addr} against ${file}`)
@@ -292,7 +293,7 @@ exports.helo_access = function (next, connection, helo) {
 exports.mail_from_access = function (next, connection, params) {
   if (!this.cfg.check.mail) return next()
 
-  const mail_from = params[0].address()
+  const mail_from = params?.[0]?.address?.()
   if (!mail_from) {
     connection.transaction.results.add(this, {
       skip: 'null sender',
@@ -337,12 +338,9 @@ exports.mail_from_access = function (next, connection, params) {
 exports.rcpt_to_access = function (next, connection, params) {
   if (!this.cfg.check.rcpt) return next()
 
-  let pass_status = undefined
-  if (this.cfg.rcpt.accept) {
-    pass_status = OK
-  }
+  const pass_status = this.cfg.rcpt.accept ? OK : undefined
 
-  const rcpt_to = params[0].address()
+  const rcpt_to = params?.[0]?.address?.()
 
   // address whitelist checks
   if (!rcpt_to) {
@@ -392,13 +390,9 @@ exports.data_any = function (next, connection) {
   let hdr_addr
   try {
     hdr_addr = haddr.parse(hdr_from)[0]
-  } catch (ignore) {
-    connection.transaction.results.add(this, {
-      fail: `data(unparsable_from:${hdr_from})`,
-    })
-    return next()
+  } catch {
+    /* hdr_addr stays undefined */
   }
-
   if (!hdr_addr) {
     connection.transaction.results.add(this, {
       fail: `data(unparsable_from:${hdr_from})`,
@@ -435,7 +429,7 @@ exports.data_any = function (next, connection) {
 
 exports.in_list = function (type, phase, address) {
   if (this.list[type][phase] === undefined) {
-    console.log(`phase not defined: ${phase}`)
+    this.logdebug(`phase not defined: ${phase}`)
     return false
   }
   if (!address) return false
@@ -444,16 +438,10 @@ exports.in_list = function (type, phase, address) {
 }
 
 exports.in_re_list = function (type, phase, address) {
-  if (!this.list_re[type][phase]) return false
-
-  if (!this.list_re[type][phase].source) {
-    this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
-  } else {
-    this.logdebug(
-      `checking ${address} against ${this.list_re[type][phase].source}`,
-    )
-  }
-  return this.list_re[type][phase].test(address)
+  const re = this.list_re[type][phase]
+  if (!re) return false
+  this.logdebug(`checking ${address} against ${re.source}`)
+  return re.test(address)
 }
 
 exports.load_file = function (type, phase) {
@@ -490,6 +478,12 @@ exports.load_re_file = function (type, phase) {
     }),
   )
 
+  if (regex_list.length === 0) {
+    this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
+    this.list_re[type][phase] = null
+    return
+  }
+
   // compile the regexes at the designated location
   this.list_re[type][phase] = new RegExp(`^(${regex_list.join('|')})$`, 'i')
 }
@@ -507,20 +501,13 @@ exports.load_domain_file = function (type, phase) {
 
   // lowercase list items at load (much faster than at run time)
   for (const entry of list) {
-    if (entry[0] === '!') {
-      // whitelist entry
+    // whitelist entries (!prefix) and email addresses are stored verbatim;
+    // bare domains are reduced to the organizational domain
+    if (entry.startsWith('!') || entry.includes('@')) {
       this.list[type][phase][entry.toLowerCase()] = true
       continue
     }
-
-    if (/@/.test(entry)) {
-      // email address
-      this.list[type][phase][entry.toLowerCase()] = true
-      continue
-    }
-
     const d = tlds.get_organizational_domain(entry)
-    if (!d) continue
-    this.list[type][phase][d.toLowerCase()] = true
+    if (d) this.list[type][phase][d.toLowerCase()] = true
   }
 }

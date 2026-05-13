@@ -142,6 +142,21 @@ describe('rcpt_to_access', () => {
     })
   })
 
+  it('skips when params are missing', async () => {
+    await new Promise((resolve) => {
+      plugin.rcpt_to_access(
+        (rc) => {
+          assert.equal(rc, undefined)
+          const r = connection.transaction.results.get('access')
+          assert.ok(r.skip.length)
+          resolve()
+        },
+        connection,
+        [],
+      )
+    })
+  })
+
   it('returns next() when check.rcpt is false', async () => {
     plugin.cfg.check.rcpt = false
     await new Promise((resolve) => {

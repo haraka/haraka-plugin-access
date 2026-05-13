@@ -110,6 +110,21 @@ describe('mail_from_access', () => {
     })
   })
 
+  it('skips when params are missing', async () => {
+    await new Promise((resolve) => {
+      plugin.mail_from_access(
+        (rc) => {
+          assert.equal(rc, undefined)
+          const r = connection.transaction.results.get('access')
+          assert.ok(r.skip.length)
+          resolve()
+        },
+        connection,
+        [],
+      )
+    })
+  })
+
   it('returns next() when check.mail is false', async () => {
     plugin.cfg.check.mail = false
     await new Promise((resolve) => {
