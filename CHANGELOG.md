@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - fix: removed the dead if (!this.list) blocks
 - fix: removed the dead data_any guard checking
 - fix: use Object.create(null) (vs `{}`) to prevent prototype pollution
+- fix: consider NXDOMAIN as invalid remote.host
 - change: use modern JS idioms to simplify code
 
 ### [1.1.10] - 2025-01-26

@@ -134,7 +134,14 @@ exports.init_lists = function () {
   }
 }
 
-const invalidHosts = new Set([undefined, null, '', 'DNSERROR', 'Unknown'])
+const invalidHosts = new Set([
+  undefined,
+  null,
+  '',
+  'DNSERROR',
+  'Unknown',
+  'NXDOMAIN',
+])
 
 exports.get_domain = function (hook, connection, params) {
   switch (hook) {

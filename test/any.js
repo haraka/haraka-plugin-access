@@ -42,6 +42,11 @@ describe('get_domain', () => {
     assert.equal(plugin.get_domain('connect', connection), undefined)
   })
 
+  it('connect: undefined when remote.host is NXDOMAIN', () => {
+    connection.remote.host = 'NXDOMAIN'
+    assert.equal(plugin.get_domain('connect', connection), undefined)
+  })
+
   it('helo: returns helo string', () => {
     assert.equal(
       plugin.get_domain('helo', connection, 'mail.example.com'),
