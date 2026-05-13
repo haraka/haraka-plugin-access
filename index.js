@@ -99,36 +99,34 @@ exports.load_access_ini = function () {
 
   this.cfg.check = cfg.check
   if (cfg.deny_msg) {
-    let p
-    for (p in this.cfg.deny_msg) {
-      if (cfg.deny_msg[p]) {
-        this.cfg.deny_msg[p] = cfg.deny_msg[p]
-      }
-    }
+    Object.assign(this.cfg.deny_msg, cfg.deny_msg)
   }
 
   this.cfg.rcpt = cfg.rcpt
 
-  // backwards compatibility
-  const mf_cfg = this.config.get('mail_from.access.ini')
-  if (mf_cfg && mf_cfg.general && mf_cfg.general.deny_msg) {
-    this.cfg.deny_msg.mail = mf_cfg.general.deny_msg
+  // backwards compatibility with the rdns_access, mail_from.access, and
+  // rcpt_to.access plugins this one replaced
+  const compatFiles = {
+    mail: 'mail_from.access.ini',
+    rcpt: 'rcpt_to.access.ini',
+    conn: 'connect.rdns_access.ini',
   }
-  const rcpt_cfg = this.config.get('rcpt_to.access.ini')
-  if (rcpt_cfg && rcpt_cfg.general && rcpt_cfg.general.deny_msg) {
-    this.cfg.deny_msg.rcpt = rcpt_cfg.general.deny_msg
-  }
-  const rdns_cfg = this.config.get('connect.rdns_access.ini')
-  if (rdns_cfg && rdns_cfg.general && rdns_cfg.general.deny_msg) {
-    this.cfg.deny_msg.conn = rdns_cfg.general.deny_msg
+  for (const [phase, file] of Object.entries(compatFiles)) {
+    const compat = this.config.get(file)
+    if (compat?.general?.deny_msg) {
+      this.cfg.deny_msg[phase] = compat.general.deny_msg
+    }
   }
 }
 
 exports.init_lists = function () {
+  // null-prototype maps prevent prototype pollution from config-file entries
+  // (e.g. an entry of `__proto__` cannot reach Object.prototype)
+  const bag = () => Object.create(null)
   this.list = {
-    black: { conn: {}, helo: {}, mail: {}, rcpt: {} },
-    white: { conn: {}, helo: {}, mail: {}, rcpt: {} },
-    domain: { any: {} },
+    black: { conn: bag(), helo: bag(), mail: bag(), rcpt: bag() },
+    white: { conn: bag(), helo: bag(), mail: bag(), rcpt: bag() },
+    domain: { any: bag() },
   }
   this.list_re = {
     black: {},
@@ -136,12 +134,19 @@ exports.init_lists = function () {
   }
 }
 
+const invalidHosts = new Set([
+  undefined,
+  null,
+  '',
+  'DNSERROR',
+  'Unknown',
+  'NXDOMAIN',
+])
+
 exports.get_domain = function (hook, connection, params) {
   switch (hook) {
     case 'connect':
-      if (!connection.remote.host) return
-      if (connection.remote.host === 'DNSERROR') return
-      if (connection.remote.host === 'Unknown') return
+      if (invalidHosts.has(connection.remote.host)) return
       return connection.remote.host
     case 'helo':
     case 'ehlo':
@@ -149,7 +154,7 @@ exports.get_domain = function (hook, connection, params) {
       return params
     case 'mail':
     case 'rcpt':
-      if (params && params[0]) return params[0].host
+      return params?.[0]?.host
   }
   return
 }
@@ -161,8 +166,8 @@ exports.any_whitelist = function (
   domain,
   org_domain,
 ) {
-  if (hook === 'mail' || hook === 'rcpt') {
-    const email = params[0].address()
+  if (['mail', 'rcpt'].includes(hook)) {
+    const email = params?.[0]?.address?.()
     if (email && this.in_list('domain', 'any', `!${email}`)) return true
   }
 
@@ -224,8 +229,7 @@ exports.any = function (next, connection, params) {
     return next(DENY, 'You are not welcome here.')
   }
 
-  const umsg = hook ? `${hook}:any` : 'any'
-  connection.results.add(this, { msg: `unlisted(${umsg})` })
+  connection.results.add(this, { msg: `unlisted(${hook}:any)` })
   next()
 }
 
@@ -245,7 +249,7 @@ exports.rdns_is_listed = function (connection, color) {
 
   for (let addr of addrs) {
     if (!addr) continue // empty rDNS host
-    if (/[\w]/.test(addr)) addr = addr.toLowerCase()
+    addr = addr.toLowerCase()
 
     let file = this.cfg[color].conn
     connection.logdebug(this, `checking ${addr} against ${file}`)
@@ -257,7 +261,7 @@ exports.rdns_is_listed = function (connection, color) {
 
     file = this.cfg.re[color].conn
     connection.logdebug(this, `checking ${addr} against ${file}`)
-    if (this.in_re_list(color, 'conn', addr)) {
+    if (this.in_re_list(color, 'conn', addr, connection)) {
       this.rdns_store_results(connection, color, file)
       return true
     }
@@ -283,7 +287,7 @@ exports.helo_access = function (next, connection, helo) {
   if (!this.cfg.check.helo) return next()
 
   const file = this.cfg.re.black.helo
-  if (this.in_re_list('black', 'helo', helo)) {
+  if (this.in_re_list('black', 'helo', helo, connection)) {
     connection.results.add(this, { fail: file, emit: true })
     return next(DENY, `${helo} ${this.cfg.deny_msg.helo}`)
   }
@@ -295,7 +299,7 @@ exports.helo_access = function (next, connection, helo) {
 exports.mail_from_access = function (next, connection, params) {
   if (!this.cfg.check.mail) return next()
 
-  const mail_from = params[0].address()
+  const mail_from = params?.[0]?.address?.()
   if (!mail_from) {
     connection.transaction.results.add(this, {
       skip: 'null sender',
@@ -314,7 +318,7 @@ exports.mail_from_access = function (next, connection, params) {
 
   file = this.cfg.re.white.mail
   connection.logdebug(this, `checking ${mail_from} against ${file}`)
-  if (this.in_re_list('white', 'mail', mail_from)) {
+  if (this.in_re_list('white', 'mail', mail_from, connection)) {
     connection.transaction.results.add(this, { pass: file, emit: true })
     return next()
   }
@@ -328,7 +332,7 @@ exports.mail_from_access = function (next, connection, params) {
 
   file = this.cfg.re.black.mail
   connection.logdebug(this, `checking ${mail_from} against ${file}`)
-  if (this.in_re_list('black', 'mail', mail_from)) {
+  if (this.in_re_list('black', 'mail', mail_from, connection)) {
     connection.transaction.results.add(this, { fail: file, emit: true })
     return next(DENY, `${mail_from} ${this.cfg.deny_msg.mail}`)
   }
@@ -340,12 +344,9 @@ exports.mail_from_access = function (next, connection, params) {
 exports.rcpt_to_access = function (next, connection, params) {
   if (!this.cfg.check.rcpt) return next()
 
-  let pass_status = undefined
-  if (this.cfg.rcpt.accept) {
-    pass_status = OK
-  }
+  const pass_status = this.cfg.rcpt.accept ? OK : undefined
 
-  const rcpt_to = params[0].address()
+  const rcpt_to = params?.[0]?.address?.()
 
   // address whitelist checks
   if (!rcpt_to) {
@@ -363,7 +364,7 @@ exports.rcpt_to_access = function (next, connection, params) {
   }
 
   file = this.cfg.re.white.rcpt
-  if (this.in_re_list('white', 'rcpt', rcpt_to)) {
+  if (this.in_re_list('white', 'rcpt', rcpt_to, connection)) {
     connection.transaction.results.add(this, { pass: file, emit: true })
     return next(pass_status)
   }
@@ -376,7 +377,7 @@ exports.rcpt_to_access = function (next, connection, params) {
   }
 
   file = this.cfg.re.black.rcpt
-  if (this.in_re_list('black', 'rcpt', rcpt_to)) {
+  if (this.in_re_list('black', 'rcpt', rcpt_to, connection)) {
     connection.transaction.results.add(this, { fail: file, emit: true })
     return next(DENY, `${rcpt_to} ${this.cfg.deny_msg.rcpt}`)
   }
@@ -386,11 +387,6 @@ exports.rcpt_to_access = function (next, connection, params) {
 }
 
 exports.data_any = function (next, connection) {
-  if (!this.cfg.check.data && !this.cfg.check.any) {
-    connection.transaction.results.add(this, { skip: 'data(disabled)' })
-    return next()
-  }
-
   const hdr_from = connection.transaction.header.get_decoded('From')
   if (!hdr_from) {
     connection.transaction.results.add(this, { fail: 'data(missing_from)' })
@@ -400,13 +396,9 @@ exports.data_any = function (next, connection) {
   let hdr_addr
   try {
     hdr_addr = haddr.parse(hdr_from)[0]
-  } catch (ignore) {
-    connection.transaction.results.add(this, {
-      fail: `data(unparsable_from:${hdr_from})`,
-    })
-    return next()
+  } catch {
+    /* hdr_addr stays undefined */
   }
-
   if (!hdr_addr) {
     connection.transaction.results.add(this, {
       fail: `data(unparsable_from:${hdr_from})`,
@@ -443,7 +435,7 @@ exports.data_any = function (next, connection) {
 
 exports.in_list = function (type, phase, address) {
   if (this.list[type][phase] === undefined) {
-    console.log(`phase not defined: ${phase}`)
+    this.logdebug(`phase not defined: ${phase}`)
     return false
   }
   if (!address) return false
@@ -451,18 +443,22 @@ exports.in_list = function (type, phase, address) {
   return false
 }
 
-exports.in_re_list = function (type, phase, address) {
-  if (!this.list_re[type][phase]) {
-    return false
+exports.in_re_list = function (type, phase, address, connection) {
+  const regexes = this.list_re[type][phase]
+  if (!regexes?.length) return false
+
+  const log = connection
+    ? (m) => connection.logdebug(this, m)
+    : (m) => this.logdebug(m)
+
+  for (const re of regexes) {
+    if (re.test(address)) {
+      log(`matched ${address} against ${re.source}`)
+      return true
+    }
   }
-  if (!this.cfg.re[type][phase].source) {
-    this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
-  } else {
-    this.logdebug(
-      `checking ${address} against ` + `${this.cfg.re[type][phase].source}`,
-    )
-  }
-  return this.list_re[type][phase].test(address)
+  log(`no match for ${address} in ${type}/${phase}`)
+  return false
 }
 
 exports.load_file = function (type, phase) {
@@ -478,13 +474,9 @@ exports.load_file = function (type, phase) {
     this.load_file(type, phase)
   })
 
-  // init the list store, type is white or black
-  if (!this.list) this.list = { type: {} }
-  if (!this.list[type]) this.list[type] = {}
-
   // toLower when loading spends a fraction of a second at load time
   // to save millions of seconds during run time.
-  const listAsHash = {} // store as hash for speedy lookups
+  const listAsHash = Object.create(null) // null-proto: see init_lists
   for (const entry of list) {
     listAsHash[entry.toLowerCase()] = true
   }
@@ -497,19 +489,20 @@ exports.load_re_file = function (type, phase) {
     return
   }
 
-  const plugin = this
   const regex_list = utils.valid_regexes(
-    plugin.config.get(plugin.cfg.re[type][phase], 'list', () => {
-      plugin.load_re_file(type, phase)
+    this.config.get(this.cfg.re[type][phase], 'list', () => {
+      this.load_re_file(type, phase)
     }),
   )
 
-  // initialize the list store
-  if (!this.list_re) this.list_re = { type: {} }
-  if (!this.list_re[type]) this.list_re[type] = {}
+  if (regex_list.length === 0) {
+    this.logdebug(`empty file: ${this.cfg.re[type][phase]}`)
+    this.list_re[type][phase] = []
+    return
+  }
 
   // compile the regexes at the designated location
-  this.list_re[type][phase] = new RegExp(`^(${regex_list.join('|')})$`, 'i')
+  this.list_re[type][phase] = regex_list.map((r) => new RegExp(`^(${r})$`, 'i'))
 }
 
 exports.load_domain_file = function (type, phase) {
@@ -523,26 +516,15 @@ exports.load_domain_file = function (type, phase) {
     this.load_domain_file(type, phase)
   })
 
-  // init the list store, if needed
-  if (!this.list) this.list = { type: {} }
-  if (!this.list[type]) this.list[type] = {}
-
   // lowercase list items at load (much faster than at run time)
   for (const entry of list) {
-    if (entry[0] === '!') {
-      // whitelist entry
+    // whitelist entries (!prefix) and email addresses are stored verbatim;
+    // bare domains are reduced to the organizational domain
+    if (entry.startsWith('!') || entry.includes('@')) {
       this.list[type][phase][entry.toLowerCase()] = true
       continue
     }
-
-    if (/@/.test(entry[0])) {
-      // email address
-      this.list[type][phase][entry.toLowerCase()] = true
-      continue
-    }
-
     const d = tlds.get_organizational_domain(entry)
-    if (!d) continue
-    this.list[type][phase][d.toLowerCase()] = true
+    if (d) this.list[type][phase][d.toLowerCase()] = true
   }
 }

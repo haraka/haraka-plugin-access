@@ -1,0 +1,5 @@
+# test fixture for load_domain_file
+mail.spam-central.com
+MIXED-Case.com
+!special.example.com
+!friend@aol.com
