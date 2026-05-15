@@ -1,7 +1,7 @@
 // access plugin
 
 const tlds = require('haraka-tld')
-const haddr = require('address-rfc2822')
+const { parseHeader } = require('@haraka/email-address')
 const net_utils = require('haraka-net-utils')
 const utils = require('haraka-utils')
 
@@ -129,8 +129,8 @@ exports.init_lists = function () {
     domain: { any: bag() },
   }
   this.list_re = {
-    black: {},
-    white: {},
+    black: bag(),
+    white: bag(),
   }
 }
 
@@ -167,7 +167,7 @@ exports.any_whitelist = function (
   org_domain,
 ) {
   if (['mail', 'rcpt'].includes(hook)) {
-    const email = params?.[0]?.address?.()
+    const email = params?.[0]?.address
     if (email && this.in_list('domain', 'any', `!${email}`)) return true
   }
 
@@ -299,7 +299,7 @@ exports.helo_access = function (next, connection, helo) {
 exports.mail_from_access = function (next, connection, params) {
   if (!this.cfg.check.mail) return next()
 
-  const mail_from = params?.[0]?.address?.()
+  const mail_from = params?.[0]?.address
   if (!mail_from) {
     connection.transaction.results.add(this, {
       skip: 'null sender',
@@ -346,7 +346,7 @@ exports.rcpt_to_access = function (next, connection, params) {
 
   const pass_status = this.cfg.rcpt.accept ? OK : undefined
 
-  const rcpt_to = params?.[0]?.address?.()
+  const rcpt_to = params?.[0]?.address
 
   // address whitelist checks
   if (!rcpt_to) {
@@ -395,7 +395,7 @@ exports.data_any = function (next, connection) {
 
   let hdr_addr
   try {
-    hdr_addr = haddr.parse(hdr_from)[0]
+    hdr_addr = parseHeader(hdr_from)[0]
   } catch {
     /* hdr_addr stays undefined */
   }
@@ -406,7 +406,7 @@ exports.data_any = function (next, connection) {
     return next()
   }
 
-  const hdr_dom = tlds.get_organizational_domain(hdr_addr.host())
+  const hdr_dom = tlds.get_organizational_domain(hdr_addr.host)
   if (!hdr_dom) {
     connection.transaction.results.add(this, {
       fail: `data(no_od_from:${hdr_addr})`,

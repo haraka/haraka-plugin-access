@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.3.0] - 2026-05-15
+
+- dep(address-rfc2821): replaced with @haraka/email-address
+- dep(address-rfc2822): replaced with @haraka/email-address
+
 ### [1.2.0] - 2026-05-12
 
 - tests:
@@ -89,3 +94,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.1.9]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.9
 [1.1.10]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.1.10
 [1.2.0]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.2.0
+[1.3.0]: https://github.com/haraka/haraka-plugin-access/releases/tag/v1.3.0
