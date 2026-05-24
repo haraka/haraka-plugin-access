@@ -4,10 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-### [1.3.0] - 2026-05-15
+### [1.3.0] - 2026-05-24
 
-- dep(address-rfc2821): replaced with @haraka/email-address
-- dep(address-rfc2822): replaced with @haraka/email-address
+- dep(address-rfc282{1,2}): replaced with @haraka/email-address
+- deps: bump versions
 
 ### [1.2.0] - 2026-05-12
 
