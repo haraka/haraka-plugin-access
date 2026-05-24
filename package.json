@@ -36,13 +36,13 @@
   "homepage": "https://github.com/haraka/haraka-plugin-access#readme",
   "devDependencies": {
     "@haraka/eslint-config": "^2.0.4",
-    "haraka-test-fixtures": "^1.5.0"
+    "haraka-test-fixtures": "^1.6.0"
   },
   "dependencies": {
-    "@haraka/email-address": "^3.1.2",
+    "@haraka/email-address": "^3.1.4",
     "haraka-net-utils": "^1.8.2",
     "haraka-tld": "^1.3.4",
-    "haraka-utils": "^1.1.4"
+    "haraka-utils": "^2.0.0"
   },
   "prettier": {
     "singleQuote": true,
