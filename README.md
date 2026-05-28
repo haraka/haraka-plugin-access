@@ -1,6 +1,4 @@
-[![CI Tests][ci-img]][ci-url]
-[![Code Coverage][cov-img]][cov-url]
-[![Code Climate][qlty-img]][qlty-url]
+[![Test][ci-img]][ci-url] [![Cover][cov-img]][cov-url] [![Qlty][qlty-img]][qlty-url]
 
 # haraka-plugin-access - ACLs
 
