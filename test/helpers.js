@@ -6,7 +6,7 @@ const { describe, it, beforeEach } = require('node:test')
 
 const fixtures = require('haraka-test-fixtures')
 
-const phases = ['mail', 'rcpt', 'helo']
+const phases = ['mail', 'rcpt']
 const types = ['white', 'black']
 const cases = types.flatMap((type) => phases.map((phase) => ({ type, phase })))
 

@@ -1,5 +1,6 @@
 [![CI Tests][ci-img]][ci-url]
-[![Code Climate][clim-img]][clim-url]
+[![Code Coverage][cov-img]][cov-url]
+[![Code Climate][qlty-img]][qlty-url]
 
 # haraka-plugin-access - ACLs
 
@@ -34,9 +35,9 @@ When a whitelisted email or domain matches, a `pass` result will be saved with t
 
 ### ANY data
 
-In addition to checking for a domain in the envelope, ANY can also check in
-the message headers as well. Settings 'data=true' in the [checks] section of
-`config/access.ini` enables this. At present this only checks the From header.
+In addition to checking the envelope, ANY also checks the `From:` header at
+the `data_post` stage. This is governed by the same `check.any` setting in
+`[check]`.
 
 ## PRECISE
 
@@ -53,6 +54,10 @@ Entries in ACL files are one per line.
 Regex entries are anchored, meaning '^' + regex + '$' are added automatically.
 To bypass that, use a '.\*' at the start or the end of the regex. This should
 help avoid overly permissive rules.
+
+Anchoring does not prevent catastrophic backtracking. Avoid nested quantifiers
+over overlapping character classes (e.g. `(a+)+`, `(.*)*`, `(a|a)+`); a
+pathological pattern can stall the worker that evaluates it.
 
 # Usage
 
@@ -73,7 +78,6 @@ add this section to _config/access.ini_:
     [check]
     any=false
     conn=true
-    helo=false
     mail=true
     rcpt=true
 
@@ -85,7 +89,7 @@ methods.
 ```js
 const ar = connection.results.get('access')
 if (ar.pass.length > 2) {
-  // they passed the connection and helo checks
+  // they passed the connection checks
 }
 
 const ar = connection.transaction.results.get('access')
@@ -107,7 +111,6 @@ Each check can be enabled or disabled in the [check] section of access.ini:
 [check]
 any=true    (see below)
 conn=false
-helo=false
 mail=false
 rcpt=false
 
@@ -120,7 +123,6 @@ A custom deny message can be configured for each SMTP phase:
 ```ini
 [deny_msg]
 conn=You are not allowed to connect
-helo=That HELO is not allowed to connect
 mail=That sender cannot send mail here
 rcpt=That recipient is not allowed
 ```
@@ -150,6 +152,10 @@ hostname (if any) of the remote.
 - rcpt_to.access.whitelist_regex (pass)
 - rcpt_to.access.blacklist (block)
 - rcpt_to.access.blacklist_regex (block)
+
+HELO is not handled by this plugin. For HELO regex blacklists and other HELO
+checks, use [haraka-plugin-helo.checks][helo-checks]. `any`-mode entries in
+`access.domains` still match the HELO hostname.
 
 ## NOTES
 
@@ -197,5 +203,8 @@ The Organizational Domain is the next level higher than the Public Suffix. So if
 
 [ci-img]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-access/actions/workflows/ci.yml
-[clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-access/badges/gpa.svg
-[clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-access
+[cov-img]: https://codecov.io/github/haraka/haraka-plugin-access/coverage.svg
+[cov-url]: https://codecov.io/github/haraka/haraka-plugin-access
+[qlty-img]: https://qlty.sh/gh/haraka/projects/haraka-plugin-access/maintainability.svg
+[qlty-url]: https://qlty.sh/gh/haraka/projects/haraka-plugin-access
+[helo-checks]: https://github.com/haraka/haraka-plugin-helo.checks

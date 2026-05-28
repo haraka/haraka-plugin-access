@@ -22,10 +22,6 @@ exports.register = function () {
   if (this.cfg.check.conn) {
     this.register_hook('connect', 'rdns_access')
   }
-  if (this.cfg.check.helo) {
-    this.register_hook('helo', 'helo_access')
-    this.register_hook('ehlo', 'helo_access')
-  }
   if (this.cfg.check.mail) {
     this.register_hook('mail', 'mail_from_access')
   }
@@ -46,7 +42,6 @@ exports.init_config = function () {
   this.cfg = {
     deny_msg: {
       conn: 'You are not allowed to connect',
-      helo: 'That HELO is not allowed to connect',
       mail: 'That sender cannot send mail here',
       rcpt: 'That recipient is not allowed',
     },
@@ -68,7 +63,6 @@ exports.init_config = function () {
         conn: 'connect.rdns_access.blacklist_regex',
         mail: 'mail_from.access.blacklist_regex',
         rcpt: 'rcpt_to.access.blacklist_regex',
-        helo: 'helo.checks.regexps',
       },
       white: {
         conn: 'connect.rdns_access.whitelist_regex',
@@ -86,7 +80,6 @@ exports.load_access_ini = function () {
       booleans: [
         '+check.any',
         '+check.conn',
-        '-check.helo',
         '+check.mail',
         '+check.rcpt',
         '-rcpt.accept',
@@ -124,8 +117,8 @@ exports.init_lists = function () {
   // (e.g. an entry of `__proto__` cannot reach Object.prototype)
   const bag = () => Object.create(null)
   this.list = {
-    black: { conn: bag(), helo: bag(), mail: bag(), rcpt: bag() },
-    white: { conn: bag(), helo: bag(), mail: bag(), rcpt: bag() },
+    black: { conn: bag(), mail: bag(), rcpt: bag() },
+    white: { conn: bag(), mail: bag(), rcpt: bag() },
     domain: { any: bag() },
   }
   this.list_re = {
@@ -280,19 +273,6 @@ exports.rdns_access = function (next, connection) {
     return next(DENYDISCONNECT, deny_msg)
 
   connection.results.add(this, { msg: 'unlisted(conn)' })
-  next()
-}
-
-exports.helo_access = function (next, connection, helo) {
-  if (!this.cfg.check.helo) return next()
-
-  const file = this.cfg.re.black.helo
-  if (this.in_re_list('black', 'helo', helo, connection)) {
-    connection.results.add(this, { fail: file, emit: true })
-    return next(DENY, `${helo} ${this.cfg.deny_msg.helo}`)
-  }
-
-  connection.results.add(this, { msg: 'unlisted(helo)' })
   next()
 }
 
