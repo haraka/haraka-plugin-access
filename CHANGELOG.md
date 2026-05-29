@@ -4,6 +4,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- test: refactored against test-fixtures 1.7.0
+
 ### [1.4.0] - 2026-05-28
 
 - change: removed precise-mode HELO check; use helo.checks

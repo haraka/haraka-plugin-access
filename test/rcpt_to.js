@@ -1,41 +1,27 @@
 'use strict'
 
 const assert = require('node:assert/strict')
-const path = require('node:path')
 const { describe, it, beforeEach } = require('node:test')
 
-const { Address } = require('@haraka/email-address')
-const fixtures = require('haraka-test-fixtures')
-
-// constructs a plugin once at module load so the haraka-constants globals
-// (DENY, DENYDISCONNECT, OK, ...) are installed before the cases table below
-// is evaluated.
-new fixtures.plugin('access')
-
-const runHook = (plugin, method, ...args) =>
-  new Promise((resolve) =>
-    plugin[method]((rc, msg) => resolve({ rc, msg }), ...args),
-  )
-
-const addr = (s) => [new Address(s)]
-const compileRe = (patterns) => patterns.map((r) => new RegExp(`^(${r})$`, 'i'))
+const {
+  callHook,
+  callRcpt,
+  makeConnection,
+  makePlugin,
+} = require('haraka-test-fixtures')
 
 describe('rcpt_to_access', () => {
-  let plugin
-  let connection
+  let plugin, connection
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
-    connection = fixtures.connection.createConnection()
-    connection.init_transaction()
+    plugin = makePlugin('access', { configDir: __dirname })
+    connection = makeConnection({ withTxn: true })
   })
 
   const cases = [
     {
       name: 'no lists populated',
       setup: () => {},
-      params: addr('<user@example.com>'),
+      addr: 'user@example.com',
       expect: { rc: undefined, bucket: 'msg' },
     },
     {
@@ -43,7 +29,7 @@ describe('rcpt_to_access', () => {
       setup: (p) => {
         p.list.white.rcpt['user@example.com'] = true
       },
-      params: addr('<user@example.com>'),
+      addr: 'user@example.com',
       expect: { rc: undefined, bucket: 'pass' },
     },
     {
@@ -51,7 +37,7 @@ describe('rcpt_to_access', () => {
       setup: (p) => {
         p.list.white.rcpt['user@example.com'] = true
       },
-      params: addr('<USER@example.com>'),
+      addr: 'USER@example.com',
       expect: { rc: undefined, bucket: 'pass' },
     },
     {
@@ -60,16 +46,16 @@ describe('rcpt_to_access', () => {
         p.cfg.rcpt.accept = true
         p.list.white.rcpt['user@example.com'] = true
       },
-      params: addr('<user@example.com>'),
+      addr: 'user@example.com',
       expect: { rc: OK, bucket: 'pass' },
     },
     {
       name: 'regex whitelisted addr, accept enabled',
       setup: (p) => {
         p.cfg.rcpt.accept = true
-        p.list_re.white.rcpt = [new RegExp('^user@example.com$', 'i')]
+        p.list_re.white.rcpt = [/^user@example.com$/i]
       },
-      params: addr('<user@example.com>'),
+      addr: 'user@example.com',
       expect: { rc: OK, bucket: 'pass' },
     },
     {
@@ -77,43 +63,32 @@ describe('rcpt_to_access', () => {
       setup: (p) => {
         p.list.black.rcpt['user@badmail.com'] = true
       },
-      params: addr('<user@badmail.com>'),
+      addr: 'user@badmail.com',
       expect: { rc: DENY, bucket: 'fail' },
     },
     {
       name: 'blacklisted domain',
       setup: (p) => {
-        p.list_re.black.rcpt = compileRe(['.*@spam.com'])
+        p.list_re.black.rcpt = [/^(.*@spam.com)$/i]
       },
-      params: addr('<bad@spam.com>'),
+      addr: 'bad@spam.com',
       expect: { rc: DENY, bucket: 'fail' },
     },
     {
       name: 'blacklisted domain, white addr',
       setup: (p) => {
         p.list.white.rcpt['special@spam.com'] = true
-        p.list_re.black.rcpt = compileRe(['.*@spam.com'])
+        p.list_re.black.rcpt = [/^(.*@spam.com)$/i]
       },
-      params: addr('<special@spam.com>'),
+      addr: 'special@spam.com',
       expect: { rc: undefined, bucket: 'pass' },
-    },
-    {
-      name: 'skips when params are missing',
-      setup: () => {},
-      params: [],
-      expect: { rc: undefined, bucket: 'skip' },
     },
   ]
 
   for (const c of cases) {
     it(c.name, async () => {
       c.setup(plugin)
-      const { rc } = await runHook(
-        plugin,
-        'rcpt_to_access',
-        connection,
-        c.params,
-      )
+      const { rc } = await callRcpt(plugin, connection, c.addr)
       assert.equal(rc, c.expect.rc)
       assert.ok(
         connection.transaction.results.get('access')[c.expect.bucket].length,
@@ -121,14 +96,15 @@ describe('rcpt_to_access', () => {
     })
   }
 
+  it('skips when params are missing', async () => {
+    const { rc } = await callHook(plugin, 'rcpt_to_access', connection, [])
+    assert.equal(rc, undefined)
+    assert.ok(connection.transaction.results.get('access').skip.length)
+  })
+
   it('returns next() when check.rcpt is false', async () => {
     plugin.cfg.check.rcpt = false
-    const { rc } = await runHook(
-      plugin,
-      'rcpt_to_access',
-      connection,
-      addr('<user@example.com>'),
-    )
+    const { rc } = await callRcpt(plugin, connection, 'user@example.com')
     assert.equal(rc, undefined)
   })
 })

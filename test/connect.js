@@ -1,31 +1,19 @@
 'use strict'
 
 const assert = require('node:assert/strict')
-const path = require('node:path')
 const { describe, it, beforeEach } = require('node:test')
 
-const fixtures = require('haraka-test-fixtures')
-
-// constructs a plugin once at module load so the haraka-constants globals
-// (DENY, DENYDISCONNECT, OK, ...) are installed before the cases table below
-// is evaluated.
-new fixtures.plugin('access')
-
-const runHook = (plugin, method, ...args) =>
-  new Promise((resolve) =>
-    plugin[method]((rc, msg) => resolve({ rc, msg }), ...args),
-  )
+const {
+  callConnect,
+  makeConnection,
+  makePlugin,
+} = require('haraka-test-fixtures')
 
 describe('rdns_access', () => {
-  let plugin
-  let connection
+  let plugin, connection
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
-    connection = fixtures.connection.createConnection()
-    connection.init_transaction()
-    connection.remote.ip = '1.1.1.1'
+    plugin = makePlugin('access', { configDir: __dirname })
+    connection = makeConnection({ ip: '1.1.1.1', withTxn: true })
     connection.remote.host = 'host.example.com'
   })
 
@@ -68,7 +56,7 @@ describe('rdns_access', () => {
   for (const c of cases) {
     it(c.name, async () => {
       c.setup(plugin, connection)
-      const { rc, msg } = await runHook(plugin, 'rdns_access', connection)
+      const { rc, msg } = await callConnect(plugin, connection)
       assert.equal(rc, c.expect.rc)
       if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
       assert.ok(connection.results.get('access')[c.expect.bucket].length)
@@ -77,7 +65,7 @@ describe('rdns_access', () => {
 
   it('returns next() when check.conn is false', async () => {
     plugin.cfg.check.conn = false
-    const { rc } = await runHook(plugin, 'rdns_access', connection)
+    const { rc } = await callConnect(plugin, connection)
     assert.equal(rc, undefined)
   })
 })

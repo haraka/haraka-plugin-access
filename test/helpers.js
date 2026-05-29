@@ -1,10 +1,9 @@
 'use strict'
 
 const assert = require('node:assert/strict')
-const path = require('node:path')
 const { describe, it, beforeEach } = require('node:test')
 
-const fixtures = require('haraka-test-fixtures')
+const { makePlugin } = require('haraka-test-fixtures')
 
 const phases = ['mail', 'rcpt']
 const types = ['white', 'black']
@@ -13,7 +12,7 @@ const cases = types.flatMap((type) => phases.map((phase) => ({ type, phase })))
 describe('in_list', () => {
   let plugin
   beforeEach(() => {
-    plugin = new fixtures.plugin('../index')
+    plugin = makePlugin('../index', { register: false })
   })
 
   for (const { type, phase } of cases) {
@@ -52,15 +51,13 @@ describe('in_list', () => {
 describe('in_re_list', () => {
   let plugin
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
+    plugin = makePlugin('access', { register: false })
   })
-
-  const compile = (patterns) => patterns.map((r) => new RegExp(`^(${r})$`, 'i'))
 
   for (const { type, phase } of cases) {
     it(`${type}, ${phase}`, () => {
       plugin.list_re = {
-        [type]: { [phase]: compile(['.*exam.ple', '.*example.com']) },
+        [type]: { [phase]: [/^(.*exam.ple)$/i, /^(.*example.com)$/i] },
       }
       assert.equal(plugin.in_re_list(type, phase, 'matt@exam.ple'), true)
       assert.equal(plugin.in_re_list(type, phase, 'matt@example.com'), true)
@@ -96,9 +93,7 @@ describe('in_re_list', () => {
 describe('load_file', () => {
   let plugin
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
+    plugin = makePlugin('access', { configDir: __dirname })
   })
 
   it('case normalizing', () => {
@@ -112,9 +107,7 @@ describe('load_file', () => {
 describe('load_re_file', () => {
   let plugin
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
+    plugin = makePlugin('access', { configDir: __dirname })
   })
 
   it('whitelist', () => {

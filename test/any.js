@@ -1,22 +1,11 @@
 'use strict'
 
 const assert = require('node:assert/strict')
-const path = require('node:path')
 const { describe, it, before, beforeEach } = require('node:test')
 
 const { Address } = require('@haraka/email-address')
-const fixtures = require('haraka-test-fixtures')
+const { callHook, makeConnection, makePlugin } = require('haraka-test-fixtures')
 const tlds = require('haraka-tld')
-
-// constructs a plugin once at module load so the haraka-constants globals
-// (DENY, DENYDISCONNECT, OK, ...) are installed before the cases table below
-// is evaluated.
-new fixtures.plugin('access')
-
-const runHook = (plugin, method, ...args) =>
-  new Promise((resolve) =>
-    plugin[method]((rc, msg) => resolve({ rc, msg }), ...args),
-  )
 
 // haraka-tld loads its public suffix and TLD lists asynchronously; any test
 // that calls get_organizational_domain must wait for that to finish.
@@ -28,8 +17,8 @@ describe('get_domain', () => {
   let plugin
   let connection
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    connection = fixtures.connection.createConnection()
+    plugin = makePlugin('access', { register: false })
+    connection = makeConnection()
   })
 
   it('connect: returns remote.host', () => {
@@ -79,12 +68,9 @@ describe('any', () => {
   let plugin
   let connection
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
+    plugin = makePlugin('access', { configDir: __dirname })
     plugin.cfg.check.any = true
-    connection = fixtures.connection.createConnection()
-    connection.init_transaction()
+    connection = makeConnection({ withTxn: true })
   })
 
   const userAddr = [new Address('<user@example.com>')]
@@ -199,7 +185,7 @@ describe('any', () => {
   for (const c of cases) {
     it(c.name, async () => {
       c.setup(plugin, connection)
-      const { rc, msg } = await runHook(plugin, 'any', connection, ...c.args)
+      const { rc, msg } = await callHook(plugin, 'any', connection, ...c.args)
       assert.equal(rc, c.expect.rc)
       if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
       if (c.expect.bucket) {
@@ -213,12 +199,9 @@ describe('data_any', () => {
   let plugin
   let connection
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
+    plugin = makePlugin('access', { configDir: __dirname })
     plugin.cfg.check.any = true
-    connection = fixtures.connection.createConnection()
-    connection.init_transaction()
+    connection = makeConnection({ withTxn: true })
   })
 
   const cases = [
@@ -263,7 +246,7 @@ describe('data_any', () => {
   for (const c of cases) {
     it(c.name, async () => {
       c.setup(plugin, connection)
-      const { rc, msg } = await runHook(plugin, 'data_any', connection)
+      const { rc, msg } = await callHook(plugin, 'data_any', connection)
       assert.equal(rc, c.expect.rc)
       if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
       const source =
@@ -278,9 +261,7 @@ describe('data_any', () => {
 describe('load_domain_file', () => {
   let plugin
   beforeEach(() => {
-    plugin = new fixtures.plugin('access')
-    plugin.config = plugin.config.module_config(path.resolve(__dirname))
-    plugin.register()
+    plugin = makePlugin('access', { configDir: __dirname })
     plugin.cfg.check.any = true
     plugin.list.domain.any = {}
   })
