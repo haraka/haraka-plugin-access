@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { describe, it, beforeEach } = require('node:test')
 
 const {
+  assertResult,
   callConnect,
   makeConnection,
   makePlugin,
@@ -59,7 +60,7 @@ describe('rdns_access', () => {
       const { rc, msg } = await callConnect(plugin, connection)
       assert.equal(rc, c.expect.rc)
       if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
-      assert.ok(connection.results.get('access')[c.expect.bucket].length)
+      assertResult(connection, 'access', c.expect.bucket)
     })
   }
 

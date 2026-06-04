@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { describe, it, beforeEach } = require('node:test')
 
 const {
+  assertResult,
   callHook,
   callRcpt,
   makeConnection,
@@ -90,16 +91,14 @@ describe('rcpt_to_access', () => {
       c.setup(plugin)
       const { rc } = await callRcpt(plugin, connection, c.addr)
       assert.equal(rc, c.expect.rc)
-      assert.ok(
-        connection.transaction.results.get('access')[c.expect.bucket].length,
-      )
+      assertResult(connection.transaction, 'access', c.expect.bucket)
     })
   }
 
   it('skips when params are missing', async () => {
     const { rc } = await callHook(plugin, 'rcpt_to_access', connection, [])
     assert.equal(rc, undefined)
-    assert.ok(connection.transaction.results.get('access').skip.length)
+    assertResult(connection.transaction, 'access', 'skip')
   })
 
   it('returns next() when check.rcpt is false', async () => {

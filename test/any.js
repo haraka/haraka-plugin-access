@@ -4,7 +4,12 @@ const assert = require('node:assert/strict')
 const { describe, it, before, beforeEach } = require('node:test')
 
 const { Address } = require('@haraka/email-address')
-const { callHook, makeConnection, makePlugin } = require('haraka-test-fixtures')
+const {
+  assertResult,
+  callHook,
+  makeConnection,
+  makePlugin,
+} = require('haraka-test-fixtures')
 const tlds = require('haraka-tld')
 
 // haraka-tld loads its public suffix and TLD lists asynchronously; any test
@@ -189,7 +194,7 @@ describe('any', () => {
       assert.equal(rc, c.expect.rc)
       if (c.expect.msg !== undefined) assert.equal(msg, c.expect.msg)
       if (c.expect.bucket) {
-        assert.ok(connection.results.get('access')[c.expect.bucket].length)
+        assertResult(connection, 'access', c.expect.bucket)
       }
     })
   }
@@ -253,7 +258,7 @@ describe('data_any', () => {
         c.expect.resultsOn === 'transaction'
           ? connection.transaction
           : connection
-      assert.ok(source.results.get('access')[c.expect.bucket].length)
+      assertResult(source, 'access', c.expect.bucket)
     })
   }
 })
