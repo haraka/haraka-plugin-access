@@ -46,6 +46,14 @@ describe('in_list', () => {
     assert.equal(plugin.in_list('white', 'mail', ''), false)
     assert.equal(plugin.in_list('white', 'mail', undefined), false)
   })
+
+  it('returns false when address is not a string', () => {
+    plugin.list = { white: { mail: { 'matt@exam.ple': true } } }
+    assert.equal(
+      plugin.in_list('white', 'mail', () => {}),
+      false,
+    )
+  })
 })
 
 describe('in_re_list', () => {

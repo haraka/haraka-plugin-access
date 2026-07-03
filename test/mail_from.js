@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict')
 const { describe, it, beforeEach } = require('node:test')
 
+const { Address: Rfc2821Address } = require('address-rfc2821')
 const {
   assertResult,
   callHook,
@@ -79,6 +80,17 @@ describe('mail_from_access', () => {
     const { rc } = await callHook(plugin, 'mail_from_access', connection, [])
     assert.equal(rc, undefined)
     assertResult(connection.transaction, 'access', 'skip')
+  })
+
+  it('denies a blacklisted legacy address-rfc2821 sender', async () => {
+    // Haraka <= 3.1.7 passes address-rfc2821 objects, where .address is a
+    // method — reading it as a property broke every list lookup
+    plugin.list.black.mail['list@badmail.com'] = true
+    const { rc } = await callHook(plugin, 'mail_from_access', connection, [
+      new Rfc2821Address('<list@badmail.com>'),
+    ])
+    assert.equal(rc, DENY)
+    assertResult(connection.transaction, 'access', 'fail')
   })
 
   it('returns next() when check.mail is false', async () => {

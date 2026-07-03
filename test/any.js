@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { describe, it, before, beforeEach } = require('node:test')
 
 const { Address } = require('@haraka/email-address')
+const { Address: Rfc2821Address } = require('address-rfc2821')
 const {
   assertResult,
   callHook,
@@ -164,6 +165,16 @@ describe('any', () => {
         c.hook = 'mail'
       },
       args: [[new Address('<friend@example.com>')]],
+      expect: { rc: undefined, bucket: 'pass' },
+    },
+    {
+      name: 'whitelist entry !email matches legacy address-rfc2821 objects',
+      setup: (p, c) => {
+        p.list.domain.any['example.com'] = true
+        p.list.domain.any['!friend@example.com'] = true
+        c.hook = 'mail'
+      },
+      args: [[new Rfc2821Address('<friend@example.com>')]],
       expect: { rc: undefined, bucket: 'pass' },
     },
     {

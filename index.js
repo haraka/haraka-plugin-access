@@ -152,6 +152,18 @@ exports.get_domain = function (hook, connection, params) {
   return
 }
 
+// The Address objects in params come from the host Haraka:
+// @haraka/email-address (Haraka >= 3.2.0) exposes .address as a string
+// property, address-rfc2821 (Haraka <= 3.1.7) as a method. Reading the
+// method as a property yields the function itself, so no list entry could
+// match and in_list threw on .toLowerCase(). Tolerate both APIs.
+function get_address(a) {
+  if (a == null) return undefined
+  if (typeof a.address === 'function') return a.address()
+  if (a.address != null) return String(a.address)
+  return typeof a.toString === 'function' ? a.toString() : undefined
+}
+
 exports.any_whitelist = function (
   connection,
   hook,
@@ -160,7 +172,7 @@ exports.any_whitelist = function (
   org_domain,
 ) {
   if (['mail', 'rcpt'].includes(hook)) {
-    const email = params?.[0]?.address
+    const email = get_address(params?.[0])
     if (email && this.in_list('domain', 'any', `!${email}`)) return true
   }
 
@@ -279,7 +291,7 @@ exports.rdns_access = function (next, connection) {
 exports.mail_from_access = function (next, connection, params) {
   if (!this.cfg.check.mail) return next()
 
-  const mail_from = params?.[0]?.address
+  const mail_from = get_address(params?.[0])
   if (!mail_from) {
     connection.transaction.results.add(this, {
       skip: 'null sender',
@@ -326,7 +338,7 @@ exports.rcpt_to_access = function (next, connection, params) {
 
   const pass_status = this.cfg.rcpt.accept ? OK : undefined
 
-  const rcpt_to = params?.[0]?.address
+  const rcpt_to = get_address(params?.[0])
 
   // address whitelist checks
   if (!rcpt_to) {
@@ -418,7 +430,7 @@ exports.in_list = function (type, phase, address) {
     this.logdebug(`phase not defined: ${phase}`)
     return false
   }
-  if (!address) return false
+  if (!address || typeof address !== 'string') return false
   if (this.list[type][phase][address.toLowerCase()]) return true
   return false
 }

@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- fix: tolerate both Address APIs; on Haraka <= 3.1.7 (address-rfc2821,
+  .address is a method) the property read yielded a function, so list
+  lookups never matched and in_list threw on .toLowerCase()
 - test: refactored against test-fixtures 1.7.0
 
 ### [1.4.0] - 2026-05-28
